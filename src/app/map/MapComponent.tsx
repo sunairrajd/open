@@ -6,6 +6,7 @@ import 'leaflet/dist/leaflet.css';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import 'leaflet.markercluster';
+import type { Property } from './types';
 
 // Fix Leaflet's default icon path issues with proper typing
 interface IconDefault extends L.Icon {
@@ -18,17 +19,6 @@ L.Icon.Default.mergeOptions({
   iconUrl: '/images/marker-icon.png',
   shadowUrl: '/images/marker-shadow.png',
 });
-
-interface Property {
-  YoutubeLink: string;
-  Price: number;
-  Location: string;
-  PropertyType: string;
-  'Area(Sqft)': number;
-  LastUpdated: string;
-  ThumbnailLink: string;
-  Coordinates: string;
-}
 
 interface MapComponentProps {
   properties: Property[];
@@ -78,6 +68,20 @@ export default function MapComponent({ properties, style }: MapComponentProps) {
     south: 12.9450,
     east: 77.6836,
     west: 77.5764
+  };
+
+  // Function to calculate cluster radius based on zoom level
+  const getClusterRadius = (zoom: number) => {
+    // At max zoom (19), radius should be very small
+    // At min zoom (10), radius should be larger
+    const maxRadius = 80;  // Maximum clustering radius
+    const minRadius = 10;  // Minimum clustering radius
+    const maxZoom = 19;
+    const minZoom = 10;
+    
+    // Linear interpolation between max and min radius based on zoom
+    const radius = maxRadius - ((zoom - minZoom) * (maxRadius - minRadius) / (maxZoom - minZoom));
+    return Math.max(minRadius, Math.min(maxRadius, radius));
   };
 
   // Function to clear existing markers
@@ -184,10 +188,13 @@ export default function MapComponent({ properties, style }: MapComponentProps) {
 
       // Create a marker cluster group with custom options
       const markerCluster = L.markerClusterGroup({
-        maxClusterRadius: 40,
+        maxClusterRadius: (zoom) => getClusterRadius(zoom),
         spiderfyOnMaxZoom: true,
         showCoverageOnHover: true,
         zoomToBoundsOnClick: true,
+        animate: true,
+        animateAddingMarkers: true,
+        disableClusteringAtZoom: 19, // Disable clustering at max zoom
         iconCreateFunction: function(cluster) {
           const count = cluster.getChildCount();
           const prices = cluster.getAllChildMarkers()
@@ -199,13 +206,16 @@ export default function MapComponent({ properties, style }: MapComponentProps) {
           const avgPrice = prices.reduce((a, b) => a + b, 0) / prices.length;
           const formattedAvgPrice = `₹${avgPrice.toFixed(2)}Cr`;
           
+          // Make cluster size proportional to the number of markers
+          const size = Math.min(60 + Math.log2(count) * 10, 100);
+          
           return L.divIcon({
             html: `<div class="cluster-icon">
               <span class="price">${formattedAvgPrice}</span>
-              <span class="count">${count}</span>
+              <span class="count">${count} properties</span>
             </div>`,
             className: 'bg-blue-500 text-white px-3 py-2 rounded-lg shadow-lg text-sm font-bold',
-            iconSize: L.point(60, 40)
+            iconSize: L.point(size, Math.max(40, size * 0.6))
           } as L.DivIconOptions);
         }
       });
@@ -253,13 +263,19 @@ export default function MapComponent({ properties, style }: MapComponentProps) {
           justify-content: center;
           text-align: center;
           line-height: 1.2;
+          padding: 4px 8px;
+          transition: all 0.2s ease;
         }
         .cluster-icon .price {
-          font-size: 0.75rem;
+          font-size: 0.85rem;
+          font-weight: bold;
         }
         .cluster-icon .count {
-          font-size: 0.7rem;
+          font-size: 0.75rem;
           opacity: 0.9;
+        }
+        .leaflet-marker-icon {
+          transition: all 0.3s ease;
         }
       `}</style>
       <div className="relative">
