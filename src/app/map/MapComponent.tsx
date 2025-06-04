@@ -7,8 +7,12 @@ import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import 'leaflet.markercluster';
 
-// Fix Leaflet's default icon path issues
-delete (L.Icon.Default.prototype as any)._getIconUrl;
+// Fix Leaflet's default icon path issues with proper typing
+interface IconDefault extends L.Icon {
+  _getIconUrl?: string;
+}
+const IconDefault = L.Icon.Default as unknown as { prototype: IconDefault };
+delete IconDefault.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: '/images/marker-icon-2x.png',
   iconUrl: '/images/marker-icon.png',
@@ -165,10 +169,10 @@ export default function MapComponent({ properties, style }: MapComponentProps) {
       map.setView([centerLat, centerLng], 13);
       
       // Fit to exact bounds
-      map.fitBounds([
-        [DEFAULT_BOUNDS.south, DEFAULT_BOUNDS.west],
-        [DEFAULT_BOUNDS.north, DEFAULT_BOUNDS.east]
-      ]);
+      const southWest = L.latLng(DEFAULT_BOUNDS.south, DEFAULT_BOUNDS.west);
+      const northEast = L.latLng(DEFAULT_BOUNDS.north, DEFAULT_BOUNDS.east);
+      const bounds = L.latLngBounds(southWest, northEast);
+      map.fitBounds(bounds);
 
       mapRef.current = map;
 
@@ -180,10 +184,10 @@ export default function MapComponent({ properties, style }: MapComponentProps) {
 
       // Create a marker cluster group with custom options
       const markerCluster = L.markerClusterGroup({
-        maxClusterRadius: 40, // Maximum radius of cluster area
-        spiderfyOnMaxZoom: true, // Spiderify clusters at max zoom
-        showCoverageOnHover: true, // Show bounds of markers in cluster
-        zoomToBoundsOnClick: true, // Zoom to bounds of cluster on click
+        maxClusterRadius: 40,
+        spiderfyOnMaxZoom: true,
+        showCoverageOnHover: true,
+        zoomToBoundsOnClick: true,
         iconCreateFunction: function(cluster) {
           const count = cluster.getChildCount();
           const prices = cluster.getAllChildMarkers()
@@ -230,7 +234,14 @@ export default function MapComponent({ properties, style }: MapComponentProps) {
         clearTimeout(debounceTimerRef.current);
       }
     };
-  }, [addMarkersInBounds, debouncedAddMarkers]);
+  }, [
+    addMarkersInBounds,
+    debouncedAddMarkers,
+    DEFAULT_BOUNDS.north,
+    DEFAULT_BOUNDS.south,
+    DEFAULT_BOUNDS.east,
+    DEFAULT_BOUNDS.west
+  ]);
 
   return (
     <>
