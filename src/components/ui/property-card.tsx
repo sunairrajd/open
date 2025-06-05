@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { X, Play } from "lucide-react";
 import { useState } from "react";
+import Image from "next/image";
 import type { Property } from "@/app/map/types";
 
 interface PropertyCardProps {
@@ -25,10 +26,13 @@ const formatPriceInCrores = (price: number) => {
 
 export function PropertyCard({ property, onClose }: PropertyCardProps) {
   const [isPlaying, setIsPlaying] = useState(false);
+  const [thumbnailError, setThumbnailError] = useState(false);
 
   // Get high quality thumbnail URL
   const thumbnailUrl = property.YoutubeID 
-    ? `https://img.youtube.com/vi/${property.YoutubeID}/maxresdefault.jpg`
+    ? thumbnailError 
+      ? `https://img.youtube.com/vi/${property.YoutubeID}/hqdefault.jpg`
+      : `https://img.youtube.com/vi/${property.YoutubeID}/maxresdefault.jpg`
     : property.ThumbnailLink;
 
   return (
@@ -62,18 +66,21 @@ export function PropertyCard({ property, onClose }: PropertyCardProps) {
             />
           ) : (
             <div className="relative group cursor-pointer" onClick={() => setIsPlaying(true)}>
-              <img
-                src={thumbnailUrl}
-                alt={`${property.PropertyType} at ${property.Location}`}
-                className="h-full w-full object-cover"
-                onError={(e) => {
-                  // Fallback to default thumbnail if maxresdefault fails
-                  const target = e.target as HTMLImageElement;
-                  if (target.src.includes('maxresdefault')) {
-                    target.src = `https://img.youtube.com/vi/${property.YoutubeID}/hqdefault.jpg`;
-                  }
-                }}
-              />
+              <div className="relative aspect-video">
+                <Image
+                  src={thumbnailUrl}
+                  alt={`${property.PropertyType} at ${property.Location}`}
+                  fill
+                  className="object-cover"
+                  onError={() => {
+                    if (!thumbnailError) {
+                      setThumbnailError(true);
+                    }
+                  }}
+                  sizes="(max-width: 400px) 100vw, 400px"
+                  priority
+                />
+              </div>
               {property.YoutubeID && (
                 <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity">
                   <div className="w-16 h-16 flex items-center justify-center rounded-full bg-white/90 shadow-lg">

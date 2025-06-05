@@ -6,7 +6,6 @@ import 'leaflet/dist/leaflet.css';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import 'leaflet.markercluster';
-import { Badge } from '@/components/ui/badge';
 import type { Property } from './types';
 import { MarkerButton } from '@/components/ui/marker-button';
 import ReactDOMServer from 'react-dom/server';
@@ -27,7 +26,6 @@ L.Icon.Default.mergeOptions({
 
 interface MapComponentProps {
   properties: Property[];
-  style?: React.CSSProperties;
   onMapReady?: (setView: (lat: number, lon: number) => void) => void;
 }
 
@@ -59,7 +57,7 @@ const formatCoordinate = (coord: number): string => {
   return coord.toFixed(4);
 };
 
-export default function MapComponent({ properties, style, onMapReady }: MapComponentProps) {
+export default function MapComponent({ properties, onMapReady }: MapComponentProps) {
   const mapRef = useRef<L.Map | null>(null);
   const markersRef = useRef<L.Marker[]>([]);
   const markerClusterRef = useRef<L.MarkerClusterGroup | null>(null);
