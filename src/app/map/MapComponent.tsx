@@ -6,7 +6,12 @@ import 'leaflet/dist/leaflet.css';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import 'leaflet.markercluster';
+import { Badge } from '@/components/ui/badge';
 import type { Property } from './types';
+import { MarkerButton } from '@/components/ui/marker-button';
+import ReactDOMServer from 'react-dom/server';
+import { ClusterMarker } from '@/components/ui/cluster-marker';
+import { PropertyCard } from '@/components/ui/property-card';
 
 // Fix Leaflet's default icon path issues with proper typing
 interface IconDefault extends L.Icon {
@@ -23,6 +28,7 @@ L.Icon.Default.mergeOptions({
 interface MapComponentProps {
   properties: Property[];
   style?: React.CSSProperties;
+  onMapReady?: (setView: (lat: number, lon: number) => void) => void;
 }
 
 interface MapBounds {
@@ -53,7 +59,7 @@ const formatCoordinate = (coord: number): string => {
   return coord.toFixed(4);
 };
 
-export default function MapComponent({ properties, style }: MapComponentProps) {
+export default function MapComponent({ properties, style, onMapReady }: MapComponentProps) {
   const mapRef = useRef<L.Map | null>(null);
   const markersRef = useRef<L.Marker[]>([]);
   const markerClusterRef = useRef<L.MarkerClusterGroup | null>(null);
@@ -61,6 +67,7 @@ export default function MapComponent({ properties, style }: MapComponentProps) {
   const [visibleCount, setVisibleCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
 
   // Default bounds
   const DEFAULT_BOUNDS = {
@@ -92,7 +99,22 @@ export default function MapComponent({ properties, style }: MapComponentProps) {
     markersRef.current = [];
   }, []);
 
-  // Function to add markers within bounds
+  // Add this function to group properties by coordinates
+  const groupPropertiesByLocation = (properties: Property[]) => {
+    const groups = new Map<string, Property[]>();
+    
+    properties.forEach(property => {
+      const coords = property.Coordinates;
+      if (!groups.has(coords)) {
+        groups.set(coords, []);
+      }
+      groups.get(coords)?.push(property);
+    });
+
+    return groups;
+  };
+
+  // Modify the addMarkersInBounds function
   const addMarkersInBounds = useCallback(async () => {
     if (!mapRef.current) return;
 
@@ -108,41 +130,76 @@ export default function MapComponent({ properties, style }: MapComponentProps) {
       };
       
       setCurrentBounds(mapBounds);
-
-      // Clear existing markers
       clearMarkers();
 
-      // Filter properties within bounds and limit to 500
-      const visibleProperties = properties
-        .filter(property => isPropertyInBounds(property, mapBounds))
-        .slice(0, 500);
+      // Group properties by coordinates
+      const groupedProperties = groupPropertiesByLocation(
+        properties.filter(property => isPropertyInBounds(property, mapBounds))
+      );
 
-      setVisibleCount(visibleProperties.length);
+      let visibleCount = 0;
 
-      // Add new markers
-      visibleProperties.forEach((property) => {
-        const [lat, lng] = property.Coordinates.split(',').map(Number);
-        const formattedPrice = formatPriceInCrores(property.Price);
+      // Create markers for each group
+      groupedProperties.forEach((propsAtLocation, coords) => {
+        const [baseLat, baseLng] = coords.split(',').map(Number);
+        
+        propsAtLocation.forEach((property, index) => {
+          // Create slight offset for overlapping markers
+          const offset = index * 0.00002; // Small offset in degrees
+          const lat = baseLat + offset;
+          const lng = baseLng + offset;
 
-        const icon = L.divIcon({
-          className: 'bg-white px-2 py-1 rounded border-2 border-blue-500 text-sm font-bold shadow-md',
-          html: formattedPrice,
-          iconSize: [60, 24],
-          iconAnchor: [30, 12]
+          const formattedPrice = formatPriceInCrores(property.Price);
+
+          const icon = L.divIcon({
+            className: 'leaflet-marker-custom',
+            html: ReactDOMServer.renderToString(
+              <MarkerButton 
+                price={formattedPrice.replace('₹', '')} 
+                lastUpdated={property.LastUpdated}
+              />
+            ),
+            iconSize: [60, 24],
+            iconAnchor: [30, 12]
+          });
+
+          const marker = L.marker([lat, lng], { icon });
+
+          // Handle marker click to show property card
+          marker.on('click', () => {
+            setSelectedProperty(property);
+          });
+
+          // If there are multiple properties, show all in popup
+          if (propsAtLocation.length > 1) {
+            const popupContent = `
+              <div class="text-center">
+                <h3 class="font-bold text-lg mb-2">${propsAtLocation.length} Properties</h3>
+                ${propsAtLocation.map(p => `
+                  <div class="border-b py-2 cursor-pointer hover:bg-accent/10" onclick="window.showProperty(${JSON.stringify(p).replace(/"/g, '&quot;')})">
+                    <div class="font-bold">${formatPriceInCrores(p.Price)}</div>
+                    <div>${p.PropertyType} - ${p['Area(Sqft)']}sqft</div>
+                    <div>${p.Location}</div>
+                  </div>
+                `).join('')}
+              </div>
+            `;
+            marker.bindPopup(popupContent);
+          }
+
+          markersRef.current.push(marker);
+          markerClusterRef.current?.addLayer(marker);
         });
 
-        const marker = L.marker([lat, lng], { icon })
-          .bindPopup(`
-            <div class="text-center">
-              <h3 class="font-bold">${formattedPrice}</h3>
-              <p>${property.PropertyType} - ${property['Area(Sqft)']}sqft</p>
-              <p>${property.Location}</p>
-            </div>
-          `);
-
-        markersRef.current.push(marker);
-        markerClusterRef.current?.addLayer(marker);
+        visibleCount += propsAtLocation.length;
       });
+
+      setVisibleCount(visibleCount);
+
+      // Add global function to handle property selection from popup
+      window.showProperty = (property: Property) => {
+        setSelectedProperty(property);
+      };
     } finally {
       setIsLoading(false);
     }
@@ -160,6 +217,17 @@ export default function MapComponent({ properties, style }: MapComponentProps) {
       addMarkersInBounds();
     }, 1000); // 1 second delay
   }, [addMarkersInBounds]);
+
+  // Update the setMapView function
+  const setMapView = useCallback((lat: number, lon: number) => {
+    if (mapRef.current) {
+      console.log('Setting map view to:', lat, lon); // Debug log
+      mapRef.current.setView([lat, lon], 15, {
+        animate: true,
+        duration: 1
+      });
+    }
+  }, []);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && !mapRef.current) {
@@ -182,7 +250,7 @@ export default function MapComponent({ properties, style }: MapComponentProps) {
 
       // Add the tile layer
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
+        maxZoom: 16,
         attribution: '© OpenStreetMap contributors'
       }).addTo(map);
 
@@ -194,29 +262,23 @@ export default function MapComponent({ properties, style }: MapComponentProps) {
         zoomToBoundsOnClick: true,
         animate: true,
         animateAddingMarkers: true,
-        disableClusteringAtZoom: 19, // Disable clustering at max zoom
+        disableClusteringAtZoom: 17,
         iconCreateFunction: function(cluster) {
           const count = cluster.getChildCount();
-          const prices = cluster.getAllChildMarkers()
-            .map(marker => {
-              const html = (marker.getIcon().options as L.DivIconOptions).html as string;
-              return parseFloat(html.replace('₹', '').replace('Cr', ''));
-            });
           
-          const avgPrice = prices.reduce((a, b) => a + b, 0) / prices.length;
-          const formattedAvgPrice = `₹${avgPrice.toFixed(2)}Cr`;
+          // Use ReactDOMServer to render our cluster marker to HTML string
+          const html = ReactDOMServer.renderToString(
+            <ClusterMarker count={count} />
+          );
           
           // Make cluster size proportional to the number of markers
           const size = Math.min(60 + Math.log2(count) * 10, 100);
           
           return L.divIcon({
-            html: `<div class="cluster-icon">
-              <span class="price">${formattedAvgPrice}</span>
-              <span class="count">${count} properties</span>
-            </div>`,
-            className: 'bg-blue-500 text-white px-3 py-2 rounded-lg shadow-lg text-sm font-bold',
+            html: html,
+            className: 'leaflet-marker-custom',
             iconSize: L.point(size, Math.max(40, size * 0.6))
-          } as L.DivIconOptions);
+          });
         }
       });
 
@@ -230,6 +292,11 @@ export default function MapComponent({ properties, style }: MapComponentProps) {
 
       // Initial load of markers
       addMarkersInBounds();
+
+      // Add this line after map initialization
+      if (onMapReady) {
+        onMapReady(setMapView);
+      }
     }
 
     return () => {
@@ -250,7 +317,9 @@ export default function MapComponent({ properties, style }: MapComponentProps) {
     DEFAULT_BOUNDS.north,
     DEFAULT_BOUNDS.south,
     DEFAULT_BOUNDS.east,
-    DEFAULT_BOUNDS.west
+    DEFAULT_BOUNDS.west,
+    onMapReady,
+    setMapView
   ]);
 
   return (
@@ -278,8 +347,8 @@ export default function MapComponent({ properties, style }: MapComponentProps) {
           transition: all 0.3s ease;
         }
       `}</style>
-      <div className="relative">
-        <div id="map" style={{ ...style, minHeight: '500px' }}></div>
+      <div className="relative h-full w-full">
+        <div id="map" className="h-full w-full"></div>
         
         {/* Status overlay */}
         <div className="absolute bottom-4 left-4 bg-white/90 p-4 rounded-lg shadow-lg border border-gray-200" style={{zIndex: 1000}}>
@@ -300,6 +369,14 @@ export default function MapComponent({ properties, style }: MapComponentProps) {
             </div>
           )}
         </div>
+
+        {/* Property Card */}
+        {selectedProperty && (
+          <PropertyCard 
+            property={selectedProperty} 
+            onClose={() => setSelectedProperty(null)} 
+          />
+        )}
       </div>
     </>
   );
