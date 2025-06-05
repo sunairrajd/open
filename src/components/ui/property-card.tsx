@@ -33,7 +33,7 @@ export function PropertyCard({ property, onClose }: PropertyCardProps) {
     ? thumbnailError 
       ? `https://img.youtube.com/vi/${property.YoutubeID}/hqdefault.jpg`
       : `https://img.youtube.com/vi/${property.YoutubeID}/maxresdefault.jpg`
-    : property.ThumbnailLink;
+    : property.ThumbnailLink || `https://img.youtube.com/vi/${property.YoutubeID}/hqdefault.jpg`;
 
   return (
     <Card className="fixed right-4 top-20 w-[400px] shadow-lg z-[9999] bg-white">

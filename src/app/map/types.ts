@@ -6,7 +6,7 @@ export interface Property {
   PropertyType: string;
   'Area(Sqft)': number;
   LastUpdated: string;
-  ThumbnailLink: string;
+  ThumbnailLink?: string;
   Coordinates: string;
 }
 
