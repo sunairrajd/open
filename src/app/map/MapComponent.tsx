@@ -11,6 +11,7 @@ import { MarkerButton } from '@/components/ui/marker-button';
 import ReactDOMServer from 'react-dom/server';
 import { ClusterMarker } from '@/components/ui/cluster-marker';
 import { PropertyCard } from '@/components/ui/property-card';
+import { PropertyList } from '@/components/ui/property-list';
 
 // Fix Leaflet's default icon path issues with proper typing
 interface IconDefault extends L.Icon {
@@ -66,6 +67,7 @@ export default function MapComponent({ properties, onMapReady }: MapComponentPro
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
+  const [visibleProperties, setVisibleProperties] = useState<Property[]>([]);
 
   // Default bounds
   const DEFAULT_BOUNDS = {
@@ -130,10 +132,16 @@ export default function MapComponent({ properties, onMapReady }: MapComponentPro
       setCurrentBounds(mapBounds);
       clearMarkers();
 
-      // Group properties by coordinates
-      const groupedProperties = groupPropertiesByLocation(
-        properties.filter(property => isPropertyInBounds(property, mapBounds))
+      // Filter properties in bounds
+      const propertiesInBounds = properties.filter(property => 
+        isPropertyInBounds(property, mapBounds)
       );
+
+      // Update visible properties
+      setVisibleProperties(propertiesInBounds);
+
+      // Group properties by coordinates
+      const groupedProperties = groupPropertiesByLocation(propertiesInBounds);
 
       let visibleCount = 0;
 
@@ -367,6 +375,12 @@ export default function MapComponent({ properties, onMapReady }: MapComponentPro
             </div>
           )}
         </div>
+
+        {/* Property List */}
+        <PropertyList 
+          properties={visibleProperties}
+          onPropertyClick={setSelectedProperty}
+        />
 
         {/* Property Card */}
         {selectedProperty && (

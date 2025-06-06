@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Lexend } from "next/font/google";
 import "./globals.css";
 
+import { Analytics } from "@vercel/analytics/react"
+
 const geist = Geist({
   subsets: ['latin'],
   variable: '--font-geist',
