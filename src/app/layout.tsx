@@ -28,6 +28,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${geist.variable} ${lexend.variable} antialiased`}>
       <body className={geist.className}>
+      <Analytics />
         {children}
       </body>
     </html>
