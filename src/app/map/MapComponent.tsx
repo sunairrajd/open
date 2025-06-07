@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useCallback, useState } from 'react';
+import { useEffect, useRef, useCallback, useState, useMemo } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
@@ -12,6 +12,7 @@ import ReactDOMServer from 'react-dom/server';
 import { ClusterMarker } from '@/components/ui/cluster-marker';
 import { PropertyCard } from '@/components/ui/property-card';
 import { PropertyList } from '@/components/ui/property-list';
+import type { FilterState } from '@/components/ui/filter-sheet';
 
 // Fix Leaflet's default icon path issues with proper typing
 interface IconDefault extends L.Icon {
@@ -28,6 +29,8 @@ L.Icon.Default.mergeOptions({
 interface MapComponentProps {
   properties: Property[];
   onMapReady?: (setView: (lat: number, lon: number) => void) => void;
+  onBoundsChange?: (bounds: MapBounds) => void;
+  activeFilters: FilterState | null;
 }
 
 interface MapBounds {
@@ -58,7 +61,12 @@ const formatCoordinate = (coord: number): string => {
   return coord.toFixed(4);
 };
 
-export default function MapComponent({ properties, onMapReady }: MapComponentProps) {
+export default function MapComponent({ 
+  properties, 
+  onMapReady, 
+  onBoundsChange,
+  activeFilters 
+}: MapComponentProps) {
   const mapRef = useRef<L.Map | null>(null);
   const markersRef = useRef<L.Marker[]>([]);
   const markerClusterRef = useRef<L.MarkerClusterGroup | null>(null);
@@ -114,144 +122,159 @@ export default function MapComponent({ properties, onMapReady }: MapComponentPro
     return groups;
   };
 
-  // Modify the addMarkersInBounds function
-  const addMarkersInBounds = useCallback(async () => {
-    if (!mapRef.current) return;
+  // Single effect to handle all updates
+  const updateMarkers = useCallback(() => {
+    if (!mapRef.current || !currentBounds) return;
 
-    setIsLoading(true);
+    // Clear existing markers
+    if (markerClusterRef.current) {
+      markerClusterRef.current.clearLayers();
+    }
+    markersRef.current = [];
     
-    try {
-      const bounds = mapRef.current.getBounds();
-      const mapBounds: MapBounds = {
-        north: bounds.getNorth(),
-        south: bounds.getSouth(),
-        east: bounds.getEast(),
-        west: bounds.getWest(),
-      };
+    // Filter properties by bounds first
+    let filteredProperties = properties.filter(property => 
+      isPropertyInBounds(property, currentBounds)
+    );
+
+    // Then apply active filters if they exist
+    if (activeFilters) {
+      filteredProperties = filteredProperties.filter(property => {
+        if (activeFilters.propertyCategory && 
+            property.PropertyType.toLowerCase() !== activeFilters.propertyCategory.toLowerCase()) {
+          return false;
+        }
+
+        if ((activeFilters.propertyCategory === 'apartment' || 
+             activeFilters.propertyCategory === 'independent-house') && 
+            activeFilters.propertyType &&
+            property.PropertyType.toLowerCase() !== activeFilters.propertyType.toLowerCase()) {
+          return false;
+        }
+
+        if (activeFilters.priceRange &&
+            (property.Price < activeFilters.priceRange.min || 
+             property.Price > activeFilters.priceRange.max)) {
+          return false;
+        }
+
+        if (activeFilters.areaRange &&
+            (property['Area(Sqft)'] < activeFilters.areaRange.min || 
+             property['Area(Sqft)'] > activeFilters.areaRange.max)) {
+          return false;
+        }
+
+        return true;
+      });
+    }
+
+    setVisibleProperties(filteredProperties);
+
+    // Create markers for filtered properties
+    const groupedProperties = groupPropertiesByLocation(filteredProperties);
+    let count = 0;
+
+    groupedProperties.forEach((propsAtLocation, coords) => {
+      const [baseLat, baseLng] = coords.split(',').map(Number);
       
-      setCurrentBounds(mapBounds);
-      clearMarkers();
+      propsAtLocation.forEach((property, index) => {
+        const offset = index * 0.00002;
+        const lat = baseLat + offset;
+        const lng = baseLng + offset;
 
-      // Filter properties in bounds
-      const propertiesInBounds = properties.filter(property => 
-        isPropertyInBounds(property, mapBounds)
-      );
+        const formattedPrice = formatPriceInCrores(property.Price);
 
-      // Update visible properties
-      setVisibleProperties(propertiesInBounds);
-
-      // Group properties by coordinates
-      const groupedProperties = groupPropertiesByLocation(propertiesInBounds);
-
-      let visibleCount = 0;
-
-      // Create markers for each group
-      groupedProperties.forEach((propsAtLocation, coords) => {
-        const [baseLat, baseLng] = coords.split(',').map(Number);
-        
-        propsAtLocation.forEach((property, index) => {
-          // Create slight offset for overlapping markers
-          const offset = index * 0.00002; // Small offset in degrees
-          const lat = baseLat + offset;
-          const lng = baseLng + offset;
-
-          const formattedPrice = formatPriceInCrores(property.Price);
-
-          const icon = L.divIcon({
-            className: 'leaflet-marker-custom',
-            html: ReactDOMServer.renderToString(
-              <MarkerButton 
-                price={formattedPrice.replace('₹', '')} 
-                lastUpdated={property.LastUpdated}
-              />
-            ),
-            iconSize: [60, 24],
-            iconAnchor: [30, 12]
-          });
-
-          const marker = L.marker([lat, lng], { icon });
-
-          // Handle marker click to show property card
-          marker.on('click', () => {
-            setSelectedProperty(property);
-          });
-
-          // If there are multiple properties, show all in popup
-          if (propsAtLocation.length > 1) {
-            const popupContent = `
-              <div class="text-center">
-                <h3 class="font-bold text-lg mb-2">${propsAtLocation.length} Properties</h3>
-                ${propsAtLocation.map(p => `
-                  <div class="border-b py-2 cursor-pointer hover:bg-accent/10" onclick="window.showProperty(${JSON.stringify(p).replace(/"/g, '&quot;')})">
-                    <div class="font-bold">${formatPriceInCrores(p.Price)}</div>
-                    <div>${p.PropertyType} - ${p['Area(Sqft)']}sqft</div>
-                    <div>${p.Location}</div>
-                  </div>
-                `).join('')}
-              </div>
-            `;
-            marker.bindPopup(popupContent);
-          }
-
-          markersRef.current.push(marker);
-          markerClusterRef.current?.addLayer(marker);
+        const icon = L.divIcon({
+          className: 'leaflet-marker-custom',
+          html: ReactDOMServer.renderToString(
+            <MarkerButton 
+              price={formattedPrice.replace('₹', '')} 
+              lastUpdated={property.LastUpdated}
+            />
+          ),
+          iconSize: [60, 24],
+          iconAnchor: [30, 12]
         });
 
-        visibleCount += propsAtLocation.length;
+        const marker = L.marker([lat, lng], { icon });
+        marker.on('click', () => setSelectedProperty(property));
+
+        if (propsAtLocation.length > 1) {
+          const popupContent = `
+            <div class="text-center">
+              <h3 class="font-bold text-lg mb-2">${propsAtLocation.length} Properties</h3>
+              ${propsAtLocation.map(p => `
+                <div class="border-b py-2 cursor-pointer hover:bg-accent/10" onclick="window.showProperty(${JSON.stringify(p).replace(/"/g, '&quot;')})">
+                  <div class="font-bold">${formatPriceInCrores(p.Price)}</div>
+                  <div>${p.PropertyType} - ${p['Area(Sqft)']}sqft</div>
+                  <div>${p.Location}</div>
+                </div>
+              `).join('')}
+            </div>
+          `;
+          marker.bindPopup(popupContent);
+        }
+
+        markersRef.current.push(marker);
+        markerClusterRef.current?.addLayer(marker);
       });
 
-      setVisibleCount(visibleCount);
+      count += propsAtLocation.length;
+    });
 
-      // Add global function to handle property selection from popup
-      window.showProperty = (property: Property) => {
-        setSelectedProperty(property);
-      };
-    } finally {
-      setIsLoading(false);
+    setVisibleCount(count);
+
+    // Add global function to handle property selection from popup
+    window.showProperty = (property: Property) => {
+      setSelectedProperty(property);
+    };
+  }, [properties, activeFilters, currentBounds]);
+
+  // Effect to trigger updates
+  useEffect(() => {
+    if (!mapRef.current || !currentBounds) return;
+    const timeoutId = setTimeout(updateMarkers, 100);
+    return () => clearTimeout(timeoutId);
+  }, [updateMarkers, currentBounds]);
+
+  // Handle map move events
+  const handleMoveEnd = useCallback(() => {
+    if (!mapRef.current) return;
+    
+    const bounds = mapRef.current.getBounds();
+    const newBounds = {
+      north: bounds.getNorth(),
+      south: bounds.getSouth(),
+      east: bounds.getEast(),
+      west: bounds.getWest()
+    };
+    
+    // Only update bounds if they've changed significantly
+    if (!currentBounds || 
+        Math.abs(currentBounds.north - newBounds.north) > 0.0001 ||
+        Math.abs(currentBounds.south - newBounds.south) > 0.0001 ||
+        Math.abs(currentBounds.east - newBounds.east) > 0.0001 ||
+        Math.abs(currentBounds.west - newBounds.west) > 0.0001) {
+      setCurrentBounds(newBounds);
+      if (onBoundsChange) {
+        onBoundsChange(newBounds);
+      }
     }
-  }, [properties, clearMarkers]);
+  }, [currentBounds, onBoundsChange]);
 
-  // Debounced version of addMarkersInBounds
-  const debouncedAddMarkers = useCallback(() => {
-    // Clear any existing timer
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
-    }
-
-    // Set a new timer
-    debounceTimerRef.current = setTimeout(() => {
-      addMarkersInBounds();
-    }, 1000); // 1 second delay
-  }, [addMarkersInBounds]);
-
-  // Update the setMapView function
-  const setMapView = useCallback((lat: number, lon: number) => {
-    if (mapRef.current) {
-      console.log('Setting map view to:', lat, lon); // Debug log
-      mapRef.current.setView([lat, lon], 15, {
-        animate: true,
-        duration: 1
-      });
-    }
-  }, []);
-
+  // Update the map initialization to properly handle bounds
   useEffect(() => {
     if (typeof window !== 'undefined' && !mapRef.current) {
-      // Initialize the map with bounds
       const map = L.map('map');
       
-      // Set view to the center of the bounding box
-      const centerLat = (DEFAULT_BOUNDS.north + DEFAULT_BOUNDS.south) / 2;
-      const centerLng = (DEFAULT_BOUNDS.east + DEFAULT_BOUNDS.west) / 2;
-      
-      map.setView([centerLat, centerLng], 13);
-      
-      // Fit to exact bounds
+      // Set initial view with default bounds
       const southWest = L.latLng(DEFAULT_BOUNDS.south, DEFAULT_BOUNDS.west);
       const northEast = L.latLng(DEFAULT_BOUNDS.north, DEFAULT_BOUNDS.east);
       const bounds = L.latLngBounds(southWest, northEast);
+      
       map.fitBounds(bounds);
-
+      setCurrentBounds(DEFAULT_BOUNDS);
+      
       mapRef.current = map;
 
       // Add the tile layer
@@ -260,26 +283,21 @@ export default function MapComponent({ properties, onMapReady }: MapComponentPro
         attribution: '© OpenStreetMap contributors'
       }).addTo(map);
 
-      // Create a marker cluster group with custom options
+      // Create marker cluster group
       const markerCluster = L.markerClusterGroup({
-        maxClusterRadius: (zoom) => getClusterRadius(zoom),
+        maxClusterRadius: getClusterRadius,
         spiderfyOnMaxZoom: true,
         showCoverageOnHover: true,
         zoomToBoundsOnClick: true,
         animate: true,
         animateAddingMarkers: true,
         disableClusteringAtZoom: 17,
-        iconCreateFunction: function(cluster) {
+        iconCreateFunction: (cluster) => {
           const count = cluster.getChildCount();
-          
-          // Use ReactDOMServer to render our cluster marker to HTML string
           const html = ReactDOMServer.renderToString(
             <ClusterMarker count={count} />
           );
-          
-          // Make cluster size proportional to the number of markers
           const size = Math.min(60 + Math.log2(count) * 10, 100);
-          
           return L.divIcon({
             html: html,
             className: 'leaflet-marker-custom',
@@ -288,20 +306,23 @@ export default function MapComponent({ properties, onMapReady }: MapComponentPro
         }
       });
 
-      // Add the cluster group to the map
       map.addLayer(markerCluster);
       markerClusterRef.current = markerCluster;
 
-      // Add event listeners for map movement using debounced function
-      map.on('moveend', debouncedAddMarkers);
-      map.on('zoomend', debouncedAddMarkers);
+      // Only update bounds on manual pan/zoom
+      map.on('moveend', handleMoveEnd);
 
-      // Initial load of markers
-      addMarkersInBounds();
+      // Initial markers
+      clearMarkers();
 
-      // Add this line after map initialization
+      // Setup location change handler
       if (onMapReady) {
-        onMapReady(setMapView);
+        onMapReady((lat: number, lon: number) => {
+          map.setView([lat, lon], 15, {
+            animate: true,
+            duration: 1
+          });
+        });
       }
     }
 
@@ -312,21 +333,11 @@ export default function MapComponent({ properties, onMapReady }: MapComponentPro
         markerClusterRef.current = null;
         markersRef.current = [];
       }
-      // Clear any pending debounce timer
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);
       }
     };
-  }, [
-    addMarkersInBounds,
-    debouncedAddMarkers,
-    DEFAULT_BOUNDS.north,
-    DEFAULT_BOUNDS.south,
-    DEFAULT_BOUNDS.east,
-    DEFAULT_BOUNDS.west,
-    onMapReady,
-    setMapView
-  ]);
+  }, []);
 
   return (
     <>

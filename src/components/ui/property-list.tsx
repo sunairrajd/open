@@ -41,7 +41,7 @@ export function PropertyList({ properties, onPropertyClick }: PropertyListProps)
                     alt={`${property.PropertyType} at ${property.Location}`}
                     fill
                     className="object-cover"
-                    sizes="96px"
+                    sizes="84px"
                   />
                 </div>
 

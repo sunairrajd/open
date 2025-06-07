@@ -86,8 +86,8 @@ export function SearchLocation({ onLocationSelect }: SearchLocationProps) {
             <MagnifyingGlassIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground pointer-events-none z-[1001]" />
             <Input
               type="text"
-              placeholder="Search locations in Bangalore..."
-              className="pl-8 w-full"
+              placeholder="HSR layout, Koramangala"
+              className="text-xs pl-8 w-full bg-gray-100 border-none shadow-none"
               value={search}
               onChange={handleInputChange}
             />
@@ -105,16 +105,16 @@ export function SearchLocation({ onLocationSelect }: SearchLocationProps) {
             style={{ zIndex: 1001 }}
             sideOffset={4}
           >
-            <Command className="rounded-lg border shadow-md">
+            <Command className="rounded-lg  shadow-md">
               <CommandGroup>
                 {results.map((result) => (
                   <CommandItem
                     key={`${result.display_name}-${result.lat}-${result.lon}`}
                     onSelect={() => handleSelect(result)}
-                    className="flex flex-col items-start py-2 px-3 cursor-pointer hover:bg-accent"
+                    className="flex flex-col items-start py-2 pr-3 pl-7 gap-0 cursor-pointer hover:bg-accent"
                   >
-                    <span className="font-medium">{result.display_name.split(',')[0]}</span>
-                    <span className="text-sm text-muted-foreground">
+                    <span className="text-xs">{result.display_name.split(',')[0]}</span>
+                    <span className="text-xs text-muted-foreground">
                       {result.display_name.split(',').slice(1, 3).join(',')}
                     </span>
                   </CommandItem>

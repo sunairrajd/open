@@ -18,8 +18,10 @@ module.exports = {
           blue: {
             bg: '#F3F8FF',
             text: '#084DCB',
+            
           }
-        }
+        },
+        pinkbrand: '#8727c2',
       },
     },
   },

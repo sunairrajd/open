@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useMediaQuery } from '@/hooks/use-media-query';
+import { ListFilter, FilterIcon, SlidersHorizontal } from 'lucide-react';
 import {
   Sheet,
   SheetContent,
@@ -15,6 +16,7 @@ import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 
 export interface FilterState {
+  propertyCategory: string;
   propertyType: string;
   priceRange: {
     min: number;
@@ -26,7 +28,13 @@ export interface FilterState {
   };
 }
 
-const PROPERTY_TYPES = [
+const PROPERTY_CATEGORIES = [
+  { value: 'apartment', label: 'Apartment' },
+  { value: 'independent-house', label: 'Independent House' },
+  { value: 'plot-land', label: 'Plot/Land' },
+];
+
+const BHK_TYPES = [
   { value: '1bhk', label: '1 BHK' },
   { value: '2bhk', label: '2 BHK' },
   { value: '3bhk', label: '3 BHK' },
@@ -45,6 +53,7 @@ export function FilterSheet({ onFiltersChange }: FilterSheetProps) {
   const isDesktop = useMediaQuery("(min-width: 768px)");
   
   const [filters, setFilters] = useState<FilterState>({
+    propertyCategory: '',
     propertyType: '',
     priceRange: {
       min: 0,
@@ -59,6 +68,9 @@ export function FilterSheet({ onFiltersChange }: FilterSheetProps) {
   const getActiveFilterCount = () => {
     let count = 0;
     
+    // Count property category if selected
+    if (filters.propertyCategory) count++;
+    
     // Count property type if selected
     if (filters.propertyType) count++;
     
@@ -71,8 +83,14 @@ export function FilterSheet({ onFiltersChange }: FilterSheetProps) {
     return count;
   };
 
+  const handleFiltersChange = useCallback((newFilters: FilterState) => {
+    if (onFiltersChange) {
+      onFiltersChange(newFilters);
+    }
+  }, [onFiltersChange]);
+
   const handleApplyFilters = () => {
-    onFiltersChange(filters);
+    handleFiltersChange(filters);
     setOpen(false);
   };
 
@@ -87,12 +105,23 @@ export function FilterSheet({ onFiltersChange }: FilterSheetProps) {
   return (
     <>
       <style jsx global>{`
+
+       [data-slot="sheet-overlay"] {
+    z-index: 9999 !important;
+  }
+
         [data-overlay-container] {
           z-index: 9999 !important;
         }
         .fixed[data-overlay-container] {
           z-index: 9999 !important;
         }
+
+          /* Add this to target the close button */
+  [data-slot="close-button"] {
+    cursor: pointer !important;
+  }
+
         [role="dialog"] {
           z-index: 9999 !important;
         }
@@ -108,7 +137,8 @@ export function FilterSheet({ onFiltersChange }: FilterSheetProps) {
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger asChild>
           <div className="relative inline-block">
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" className="text-xs rounder-md cursor-pointer">
+             <ListFilter />
               Filters
             </Button>
             {getActiveFilterCount() > 0 && (
@@ -125,35 +155,61 @@ export function FilterSheet({ onFiltersChange }: FilterSheetProps) {
           side={isDesktop ? "right" : "bottom"}
           className={`z-[9999] ${isDesktop ? 'w-[400px]' : 'h-[80vh]'} bg-white`}
         >
-          <SheetHeader>
+          <SheetHeader className="p-4">
             <SheetTitle>Filters</SheetTitle>
           </SheetHeader>
-          <div className="py-4 flex-1 overflow-y-auto">
-            <div className="space-y-6">
-              {/* Property Type */}
+          <div className="flex-1 overflow-y-auto">
+            <div className="space-y-10 p-6">
+              {/* Property Category */}
               <div>
                 <h3 className="text-sm font-medium mb-3">Property Type</h3>
                 <div className="grid grid-cols-2 gap-2">
-                  {PROPERTY_TYPES.map((type) => (
+                  {PROPERTY_CATEGORIES.map((category) => (
                     <button
-                      key={type.value}
-                      onClick={() => setFilters(prev => ({ ...prev, propertyType: type.value }))}
-                      className={`px-4 py-2 text-sm rounded-md border transition-colors ${
-                        filters.propertyType === type.value
+                      key={category.value}
+                      onClick={() => setFilters(prev => ({ 
+                        ...prev, 
+                        propertyCategory: category.value,
+                        propertyType: '' // Reset BHK type when changing category
+                      }))}
+                      className={`px-4 py-2 text-xs rounded-md border transition-colors ${
+                        filters.propertyCategory === category.value
                           ? 'bg-primary text-primary-foreground'
                           : 'bg-background hover:bg-accent'
                       }`}
                     >
-                      {type.label}
+                      {category.label}
                     </button>
                   ))}
                 </div>
               </div>
 
+              {/* BHK Type - Only show for Apartment and Independent House */}
+              {(filters.propertyCategory === 'apartment' || filters.propertyCategory === 'independent-house') && (
+                <div>
+                  <h3 className="text-sm font-medium mb-3">BHK Type</h3>
+                  <div className="grid grid-cols-2 gap-2">
+                    {BHK_TYPES.map((type) => (
+                      <button
+                        key={type.value}
+                        onClick={() => setFilters(prev => ({ ...prev, propertyType: type.value }))}
+                        className={`px-4 py-2 text-xs rounded-md border transition-colors ${
+                          filters.propertyType === type.value
+                            ? 'bg-primary text-primary-foreground'
+                            : 'bg-background hover:bg-accent'
+                        }`}
+                      >
+                        {type.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Price Range */}
               <div>
                 <h3 className="text-sm font-medium mb-3">Price Range</h3>
-                <div className="space-y-5">
+                <div className="space-y-2">
                   <Slider
                     defaultValue={[0, MAX_PRICE]}
                     max={MAX_PRICE}
@@ -181,7 +237,7 @@ export function FilterSheet({ onFiltersChange }: FilterSheetProps) {
               {/* Area Range */}
               <div>
                 <h3 className="text-sm font-medium mb-3">Area (Sqft)</h3>
-                <div className="space-y-5">
+                <div className="space-y-2">
                   <Slider
                     defaultValue={[0, MAX_AREA]}
                     max={MAX_AREA}
@@ -211,7 +267,7 @@ export function FilterSheet({ onFiltersChange }: FilterSheetProps) {
           <SheetFooter className="flex flex-col gap-2 pt-4">
             <Button 
               onClick={handleApplyFilters}
-              className="w-full"
+              className="w-full text-xs"
             >
               Apply Filters
             </Button>
@@ -219,12 +275,13 @@ export function FilterSheet({ onFiltersChange }: FilterSheetProps) {
               variant="outline"
               onClick={() => {
                 const defaultFilters = {
+                  propertyCategory: '',
                   propertyType: '',
                   priceRange: { min: 0, max: MAX_PRICE },
                   areaRange: { min: 0, max: MAX_AREA },
                 };
                 setFilters(defaultFilters);
-                onFiltersChange(defaultFilters);
+                handleFiltersChange(defaultFilters);
               }}
               className="w-full"
             >
