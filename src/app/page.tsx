@@ -8,10 +8,10 @@ const CircularGallery = dynamic(() => import('@/components/ui/CircularGallery'),
   loading: () => <div>Loading gallery...</div>
 });
 
-const RollingGallery = dynamic(() => import('@/components/ui/RollingGallery'), {
-  ssr: false,
-  loading: () => <div>Loading gallery...</div>
-});
+// const RollingGallery = dynamic(() => import('@/components/ui/RollingGallery'), {
+//   ssr: false,
+//   loading: () => <div>Loading gallery...</div>
+// });
 
 const galleryItems = [
   {

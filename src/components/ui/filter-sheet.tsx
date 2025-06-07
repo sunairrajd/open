@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { useMediaQuery } from '@/hooks/use-media-query';
-import { ListFilter, FilterIcon, SlidersHorizontal } from 'lucide-react';
+import { ListFilter } from 'lucide-react';
 import {
   Sheet,
   SheetContent,
