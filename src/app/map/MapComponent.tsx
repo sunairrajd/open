@@ -57,10 +57,6 @@ const isPropertyInBounds = (property: Property, bounds: MapBounds) => {
   );
 };
 
-const formatCoordinate = (coord: number): string => {
-  return coord.toFixed(4);
-};
-
 export default function MapComponent({ 
   properties, 
   onMapReady, 
@@ -71,7 +67,6 @@ export default function MapComponent({
   const markersRef = useRef<L.Marker[]>([]);
   const markerClusterRef = useRef<L.MarkerClusterGroup | null>(null);
   const [currentBounds, setCurrentBounds] = useState<MapBounds | null>(null);
-  const [visibleCount, setVisibleCount] = useState<number>(0);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [visibleProperties, setVisibleProperties] = useState<Property[]>([]);
   const [isMapInitialized, setIsMapInitialized] = useState(false);
@@ -145,8 +140,13 @@ export default function MapComponent({
 
     const map = L.map('map', { zoomControl: false });
     
-    L.control.zoom({ position: 'topright' }).addTo(map);
-    
+    // Add zoom control with custom class for responsive visibility
+    const zoomControl = L.control.zoom({ position: 'bottomright' });
+    zoomControl.addTo(map);
+    // Add custom class to zoom control container
+    const zoomContainer = zoomControl.getContainer();
+    zoomContainer.className += ' hidden lg:block';
+
     const southWest = L.latLng(DEFAULT_BOUNDS.south, DEFAULT_BOUNDS.west);
     const northEast = L.latLng(DEFAULT_BOUNDS.north, DEFAULT_BOUNDS.east);
     const bounds = L.latLngBounds(southWest, northEast);
@@ -298,7 +298,6 @@ export default function MapComponent({
       });
 
       setVisibleProperties(filteredProperties);
-      setVisibleCount(count);
     };
 
     const timeoutId = setTimeout(updateMarkersWithDelay, 100);
