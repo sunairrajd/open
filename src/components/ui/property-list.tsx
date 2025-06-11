@@ -19,6 +19,25 @@ const formatPriceInCrores = (price: number) => {
   return `₹${crores}Cr`;
 };
 
+const formatTimeAgo = (date: Date) => {
+  const distance = formatDistanceToNow(date, { addSuffix: false });
+  return distance
+    .replace(' months', 'mo')
+    .replace(' month', 'mo')
+    .replace(' years', 'y')
+    .replace(' year', 'y')
+    .replace(' days', 'd')
+    .replace(' day', 'd')
+    .replace(' hours', 'h')
+    .replace(' hour', 'h')
+    .replace(' minutes', 'm')
+    .replace(' minute', 'm')
+    .replace('about ', '')
+    .replace('over ', '')
+    .replace('almost ', '')
+    .replace('less than ', '<') + ' ago';
+};
+
 export function PropertyList({ properties, onPropertyClick, setMapView }: PropertyListProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -63,7 +82,7 @@ export function PropertyList({ properties, onPropertyClick, setMapView }: Proper
 
   return (
     <Card 
-      className={`fixed lg:right-4 lg:top-20 lg:left-8 lg:w-[400px] lg:bottom-4 lg:h-auto 
+      className={`fixed lg:right-4 lg:top-20 lg:left-8 lg:w-[420px] lg:bottom-4 lg:h-auto 
                 fixed bottom-0 left-0 right-0 
                 ${isExpanded ? 'h-[calc(100vh-4rem)]' : 'h-[40vh]'} 
                 lg:h-[calc(100vh-7rem)]
@@ -71,15 +90,14 @@ export function PropertyList({ properties, onPropertyClick, setMapView }: Proper
                 transition-all duration-300 ease-in-out`}
     >
       <CardContent 
-        className="p-4 h-full"
+        className="p-4 pt-0 h-full overflow-hidden"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-       
         <div ref={headerRef} className="flex justify-between items-center mb-4">
           <div className="flex items-center justify-between w-full">
-            <h2 className="text-lg font-semibold">{properties.length} Properties found</h2>
+            <h2 className="lg:text-sm md:text-lg font-semibold">{properties.length} properties found</h2>
             <Button
               variant="ghost"
               size="sm"
@@ -102,39 +120,44 @@ export function PropertyList({ properties, onPropertyClick, setMapView }: Proper
             </Button>
           </div>
         </div>
-        <div ref={scrollAreaRef} className={`${isExpanded ? 'h-[calc(100vh-10rem)]' : 'h-[calc(40vh-6rem)]'} lg:h-[calc(100vh-10rem)] overflow-auto pr-4`}>
-          <div className="space-y-4">
+        <div ref={scrollAreaRef} className={`${isExpanded ? 'h-[calc(100vh-10rem)]' : 'h-[calc(40vh-6rem)]'} lg:h-[calc(100vh-10rem)] overflow-auto `}>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 auto-rows-max px-4 lg:px-0">
             {properties.map((property, index) => (
               <div
                 key={`${property.Location}-${index}`}
-                className="flex gap-4 p-3 rounded-lg hover:bg-accent/10 cursor-pointer transition-colors"
+                className="flex flex-col rounded-lg hover:bg-accent/10 cursor-pointer transition-colors overflow-hidden w-full lg:w-[184px] mx-auto"
                 onClick={() => handlePropertyClick(property)}
               >
-                {/* Thumbnail */}
-                <div className="relative w-24 h-24 flex-shrink-0 rounded-md overflow-hidden">
+                {/* Thumbnail - 16:9 ratio */}
+                <div className="relative w-full lg:w-[184px] aspect-[9/16] rounded-lg overflow-hidden">
                   <Image
-                    src={`https://img.youtube.com/vi/${property.YoutubeID}/hqdefault.jpg`}
+                    src={`https://img.youtube.com/vi/${property.YoutubeID}/maxresdefault.jpg`}
                     alt={`${property.PropertyType} at ${property.Location}`}
                     fill
                     className="object-cover"
-                    sizes="84px"
+                    sizes="(max-width: 768px) 100vw, 184px"
                   />
                 </div>
 
                 {/* Property Info */}
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-lg">
-                    {formatPriceInCrores(property.Price)}
+                <div className="px-1 py-2 flex-1">
+                  <div className="flex justify-between items-center">
+                  <p className=" text-base text-sm"><span className="font-semibold">
+                    {formatPriceInCrores(property.Price)}</span> · <span className="font-regular text-xs">{property.PropertyType}  ({property['Area(Sqft)']} sqft)</span>
+                    
                   </p>
-                  <p className="text-sm text-muted-foreground line-clamp-1">
-                    {property.PropertyType} · {property['Area(Sqft)']} sqft
+                  <p className="text-xs text-base ">
+                    {/* {formatTimeAgo(new Date(property.LastUpdated))} */}
+                    {/* {property.PropertyType}  ({property['Area(Sqft)']} sqft) */}
                   </p>
-                  <p className="text-sm text-muted-foreground line-clamp-1">
-                    {property.Location}
+                  </div>
+                  <p className="text-xs text-base font-regular text-muted-foreground">
+                     {property.Location}
                   </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Updated {formatDistanceToNow(new Date(property.LastUpdated), { addSuffix: true })}
+                  <p className="text-xs  font-regular text-muted-foreground line-clamp-1 ">
+                   
                   </p>
+                  
                 </div>
               </div>
             ))}

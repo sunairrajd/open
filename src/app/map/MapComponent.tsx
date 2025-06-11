@@ -145,7 +145,7 @@ export default function MapComponent({
 
     const map = L.map('map', { zoomControl: false });
     
-    L.control.zoom({ position: 'topright' }).addTo(map);
+    L.control.zoom({ position: 'bottomright' }).addTo(map);
     
     const southWest = L.latLng(DEFAULT_BOUNDS.south, DEFAULT_BOUNDS.west);
     const northEast = L.latLng(DEFAULT_BOUNDS.north, DEFAULT_BOUNDS.east);
