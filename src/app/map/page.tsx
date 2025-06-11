@@ -84,7 +84,6 @@ export default function MapPage() {
             onMapReady={handleMapReady}
             onBoundsChange={setCurrentBounds}
             activeFilters={activeFilters}
-            className="rounded-lg"
           />
         </div>
       </main>
