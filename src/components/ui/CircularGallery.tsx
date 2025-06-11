@@ -13,13 +13,12 @@ type GL = Renderer["gl"];
 
 // Define proper types for debounce function
 type EventHandler<T extends Event = Event> = (event: T) => void;
-type AnyFunction = (...args: unknown[]) => unknown;
 
 function debounce<T extends Event>(func: EventHandler<T>, wait: number): EventHandler<T> {
-  let timeout: number;
+  let timeoutId: NodeJS.Timeout;
   return (event: T) => {
-    window.clearTimeout(timeout);
-    timeout = window.setTimeout(() => func(event), wait);
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => func(event), wait);
   };
 }
 

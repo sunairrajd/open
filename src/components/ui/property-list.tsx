@@ -2,12 +2,11 @@
 
 import { Property } from "@/app/map/types";
 import { Card, CardContent } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, ChevronUp, Landmark  } from "lucide-react";
+import { ChevronDown, ChevronUp  } from "lucide-react";
 import Image from "next/image";
 import { formatDistanceToNow } from 'date-fns';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 
 interface PropertyListProps {
   properties: Property[];
