@@ -152,7 +152,7 @@ export function PropertyList({ properties, onPropertyClick, setMapView }: Proper
                   </p>
                   </div>
                   <p className="text-xs text-base font-regular text-muted-foreground">
-                     {property.Location}
+                     {property.Location} {formatTimeAgo(new Date(property.LastUpdated))}
                   </p>
                   <p className="text-xs  font-regular text-muted-foreground line-clamp-1 ">
                    

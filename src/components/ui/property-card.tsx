@@ -3,14 +3,11 @@
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { X, Play } from "lucide-react";
-import { useState } from "react";
+import { X } from "lucide-react";
 import Image from "next/image";
 import type { Property } from "@/app/map/types";
 
@@ -24,114 +21,127 @@ const formatPriceInCrores = (price: number) => {
   return `₹${crores}Cr`;
 };
 
+const formatPricePerSqft = (price: number, area: number) => {
+  return `₹${Math.round(price / area).toLocaleString('en-IN')}/sqft`;
+};
+
 export function PropertyCard({ property, onClose }: PropertyCardProps) {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [thumbnailError, setThumbnailError] = useState(false);
-
-  // Get high quality thumbnail URL
-  const thumbnailUrl = property.YoutubeID 
-    ? thumbnailError 
-      ? `https://img.youtube.com/vi/${property.YoutubeID}/hqdefault.jpg`
-      : `https://img.youtube.com/vi/${property.YoutubeID}/maxresdefault.jpg`
-    : property.ThumbnailLink || `https://img.youtube.com/vi/${property.YoutubeID}/hqdefault.jpg`;
-
   return (
-    <Card className="fixed lg:right-[420px] lg:top-20 lg:w-[400px] lg:h-[calc(100vh-7rem)] 
+    <Card className="fixed lg:left-[460px] lg:top-20 lg:w-[240px] lg:h-[calc(100vh-7rem)] 
                      fixed bottom-0 left-0 right-0 h-[60vh] 
                      shadow-lg z-[9999] bg-white overflow-auto">
-      <CardHeader className="relative">
+      <CardHeader className="relative p-4">
         <Button
           variant="ghost"
           size="icon"
-          className="absolute right-2 top-2"
+          className="absolute right-1 top-1"
           onClick={onClose}
         >
           <X className="h-4 w-4" />
         </Button>
-        <CardTitle className="text-xl font-bold">
+        <CardTitle className="text-base font-bold pr-6">
           {formatPriceInCrores(property.Price)}
         </CardTitle>
-        <CardDescription className="text-base">
+        <p className="text-xs text-muted-foreground">
           {property.PropertyType} · {property['Area(Sqft)']} sqft
-        </CardDescription>
+        </p>
+        <p className="text-xs text-muted-foreground">
+          {property.Location}
+        </p>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Property Video/Image */}
-        <div className="aspect-video w-full overflow-hidden rounded-md relative">
-          {isPlaying && property.YoutubeID ? (
-            <iframe
-              src={`https://www.youtube.com/embed/${property.YoutubeID}?autoplay=1`}
-              title="YouTube video player"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-              className="absolute inset-0 w-full h-full border-0"
-            />
-          ) : (
-            <div className="relative group cursor-pointer" onClick={() => setIsPlaying(true)}>
-              <div className="relative aspect-video">
-                <Image
-                  src={thumbnailUrl}
-                  alt={`${property.PropertyType} at ${property.Location}`}
-                  fill
-                  className="object-cover"
-                  onError={() => {
-                    if (!thumbnailError) {
-                      setThumbnailError(true);
-                    }
-                  }}
-                  sizes="(max-width: 400px) 100vw, 400px"
-                  priority
-                />
-              </div>
-              {property.YoutubeID && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <div className="w-16 h-16 flex items-center justify-center rounded-full bg-white/90 shadow-lg">
-                    <Play className="h-8 w-8 text-primary" />
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
+      
+      <CardContent className="space-y-3 p-4">
+        {/* Main Details */}
+        <div className="space-y-3">
+          <div>
+            <h3 className="text-xs font-medium text-muted-foreground">Area</h3>
+            <p className="text-xs">{property['Area(Sqft)']} sqft</p>
+          </div>
+          <div>
+            <h3 className="text-xs font-medium text-muted-foreground">Price per sqft</h3>
+            <p className="text-xs">{formatPricePerSqft(property.Price, property['Area(Sqft)'])}</p>
+          </div>
+          <div>
+            <h3 className="text-xs font-medium text-muted-foreground">Possession</h3>
+            <p className="text-xs">Ready to move</p>
+          </div>
+          <div>
+            <h3 className="text-xs font-medium text-muted-foreground">Property Age</h3>
+            <p className="text-xs">2 years</p>
+          </div>
         </div>
 
-        {/* Location */}
+        {/* Dimensions */}
         <div>
-          <h3 className="font-semibold mb-1">Location</h3>
-          <p className="text-muted-foreground">{property.Location}</p>
+          <h3 className="text-xs font-medium text-muted-foreground mb-2">Dimensions</h3>
+          <div className="">
+            <p className="text-xs">30ft x 40ft</p>
+            
+          </div>
         </div>
 
-        {/* Last Updated */}
+        {/* Additional Details */}
+        <div className="space-y-3">
+          <div>
+            <h3 className="text-xs font-medium text-muted-foreground">Car Parking</h3>
+            <p className="text-xs">2 covered</p>
+          </div>
+          <div>
+            <h3 className="text-xs font-medium text-muted-foreground">Floor</h3>
+            <p className="text-xs">3 of 8</p>
+          </div>
+          <div>
+            <h3 className="text-xs font-medium text-muted-foreground">Direction</h3>
+            <p className="text-xs">North East</p>
+          </div>
+          <div>
+            <h3 className="text-xs font-medium text-muted-foreground">Road Width</h3>
+            <p className="text-xs">30 ft</p>
+          </div>
+        </div>
+
+        {/* Amenities */}
         <div>
-          <h3 className="font-semibold mb-1">Last Updated</h3>
-          <p className="text-muted-foreground">
-            {new Date(property.LastUpdated).toLocaleDateString('en-US', {
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric'
-            })}
-          </p>
+          <h3 className="text-xs font-medium text-muted-foreground mb-2">Amenities</h3>
+          <div className="flex flex-wrap gap-2">
+            {['Swimming Pool', 'Gym', 'Club House', 'Children\'s Play Area', 'Security'].map((amenity) => (
+              <span key={amenity} className="px-2 py-1 bg-accent rounded-md text-xs">
+                {amenity}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* Connectivity */}
+        <div>
+          <h3 className="text-xs font-medium text-muted-foreground mb-2">Connectivity</h3>
+          <div className="space-y-1">
+            <p className="text-xs">• Metro Station - 1.2 km</p>
+            <p className="text-xs">• Bus Stop - 0.5 km</p>
+            <p className="text-xs">• Railway Station - 3 km</p>
+          </div>
+        </div>
+
+        {/* Nearby */}
+        <div>
+          <h3 className="text-xs font-medium text-muted-foreground mb-2">Nearby</h3>
+          <div className="space-y-1">
+            <p className="text-xs">• Schools: DPS (1km), Ryan International (2km)</p>
+            <p className="text-xs">• Hospitals: Apollo (1.5km), Fortis (3km)</p>
+            <p className="text-xs">• Shopping: Central Mall (1km), City Center (2km)</p>
+          </div>
+        </div>
+
+        {/* Contact Details */}
+        <div className="bg-accent/10 rounded-lg">
+          <h3 className="text-xs font-medium mb-2">Contact Details</h3>
+          <div className="space-y-1">
+            <p className="text-xs">Owner: John Doe</p>
+            <p className="text-xs">Phone: +91 98765 43210</p>
+            <p className="text-xs">Email: john.doe@example.com</p>
+          </div>
         </div>
       </CardContent>
-      <CardFooter className="flex-col gap-2">
-        {!isPlaying && property.YoutubeID && (
-          <Button 
-            className="w-full"
-            onClick={() => setIsPlaying(true)}
-          >
-            Watch Video Tour
-          </Button>
-        )}
-        <Button 
-          variant="outline" 
-          className="w-full"
-          onClick={() => {
-            // Copy location to clipboard
-            navigator.clipboard.writeText(property.Location);
-          }}
-        >
-          Copy Address
-        </Button>
-      </CardFooter>
     </Card>
   );
 } 
