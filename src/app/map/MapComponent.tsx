@@ -145,7 +145,9 @@ export default function MapComponent({
     zoomControl.addTo(map);
     // Add custom class to zoom control container
     const zoomContainer = zoomControl.getContainer();
-    zoomContainer.className += ' hidden lg:block';
+    if (zoomContainer) {
+      zoomContainer.className += ' hidden lg:block';
+    }
 
     const southWest = L.latLng(DEFAULT_BOUNDS.south, DEFAULT_BOUNDS.west);
     const northEast = L.latLng(DEFAULT_BOUNDS.north, DEFAULT_BOUNDS.east);
