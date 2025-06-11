@@ -1,7 +1,5 @@
 'use client';
 
-import dynamic from 'next/dynamic';
-
 // Import galleries with no SSR since they use browser APIs
 // const CircularGallery = dynamic(() => import('@/components/ui/CircularGallery'), {
 //   ssr: false,
