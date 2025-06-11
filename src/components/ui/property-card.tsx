@@ -8,7 +8,6 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
-import Image from "next/image";
 import type { Property } from "@/app/map/types";
 
 interface PropertyCardProps {
