@@ -248,8 +248,7 @@ export default function MapComponent({
 
       // Create markers for filtered properties
       const groupedProperties = groupPropertiesByLocation(filteredProperties);
-      let count = 0;
-
+      
       groupedProperties.forEach((propsAtLocation, coords) => {
         const [baseLat, baseLng] = coords.split(',').map(Number);
         
@@ -293,7 +292,6 @@ export default function MapComponent({
 
           markersRef.current.push(marker);
           markerClusterRef.current?.addLayer(marker);
-          count += 1;
         });
       });
 
