@@ -143,7 +143,7 @@ export function FilterSheet({ onFiltersChange }: FilterSheetProps) {
             </Button>
             {getActiveFilterCount() > 0 && (
               <Badge
-                className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center rounded-full p-0"
+                className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center rounded-full p-0 bg-primary text-primary-foreground text-xs"
                 variant="secondary"
               >
                 {getActiveFilterCount()}
@@ -224,10 +224,10 @@ export function FilterSheet({ onFiltersChange }: FilterSheetProps) {
                     className="w-full"
                   />
                   <div className="flex items-center justify-between px-2">
-                    <span className="text-sm text-muted-foreground">
+                    <span className="text-xs text-muted-foreground">
                       {formatPrice(filters.priceRange.min)}
                     </span>
-                    <span className="text-sm text-muted-foreground">
+                    <span className="text-xs text-muted-foreground">
                       {formatPrice(filters.priceRange.max)}
                     </span>
                   </div>
@@ -252,10 +252,10 @@ export function FilterSheet({ onFiltersChange }: FilterSheetProps) {
                     className="w-full"
                   />
                   <div className="flex items-center justify-between px-2">
-                    <span className="text-sm text-muted-foreground">
+                    <span className="text-xs text-muted-foreground">
                       {formatArea(filters.areaRange.min)}
                     </span>
-                    <span className="text-sm text-muted-foreground">
+                    <span className="text-xs text-muted-foreground">
                       {formatArea(filters.areaRange.max)}
                     </span>
                   </div>

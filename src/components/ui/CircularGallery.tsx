@@ -11,11 +11,15 @@ import {
 
 type GL = Renderer["gl"];
 
-function debounce<T extends (...args: any[]) => void>(func: T, wait: number) {
+// Define proper types for debounce function
+type EventHandler<T extends Event = Event> = (event: T) => void;
+type AnyFunction = (...args: unknown[]) => unknown;
+
+function debounce<T extends Event>(func: EventHandler<T>, wait: number): EventHandler<T> {
   let timeout: number;
-  return function (this: any, ...args: Parameters<T>) {
+  return (event: T) => {
     window.clearTimeout(timeout);
-    timeout = window.setTimeout(() => func.apply(this, args), wait);
+    timeout = window.setTimeout(() => func(event), wait);
   };
 }
 
@@ -23,7 +27,12 @@ function lerp(p1: number, p2: number, t: number): number {
   return p1 + (p2 - p1) * t;
 }
 
-function autoBind(instance: any): void {
+// Define proper interface for bindable objects
+interface Bindable {
+  [key: string]: ((...args: unknown[]) => unknown) | unknown;
+}
+
+function autoBind(instance: Bindable): void {
   const proto = Object.getPrototypeOf(instance);
   Object.getOwnPropertyNames(proto).forEach((key) => {
     if (key !== "constructor" && typeof instance[key] === "function") {
@@ -66,86 +75,6 @@ function createTextTexture(
   const texture = new Texture(gl, { generateMipmaps: false });
   texture.image = canvas;
   return { texture, width: canvas.width, height: canvas.height };
-}
-
-interface TitleProps {
-  gl: GL;
-  plane: Mesh;
-  renderer: Renderer;
-  text: string;
-  textColor?: string;
-  font?: string;
-}
-
-class Title {
-  gl: GL;
-  plane: Mesh;
-  renderer: Renderer;
-  text: string;
-  textColor: string;
-  font: string;
-  mesh!: Mesh;
-
-  constructor({
-    gl,
-    plane,
-    renderer,
-    text,
-    textColor = "#545050",
-    font = "30px sans-serif",
-  }: TitleProps) {
-    autoBind(this);
-    this.gl = gl;
-    this.plane = plane;
-    this.renderer = renderer;
-    this.text = text;
-    this.textColor = textColor;
-    this.font = font;
-    this.createMesh();
-  }
-
-  createMesh() {
-    const { texture, width, height } = createTextTexture(
-      this.gl,
-      this.text,
-      this.font,
-      this.textColor,
-    );
-    const geometry = new Plane(this.gl);
-    const program = new Program(this.gl, {
-      vertex: `
-        attribute vec3 position;
-        attribute vec2 uv;
-        uniform mat4 modelViewMatrix;
-        uniform mat4 projectionMatrix;
-        varying vec2 vUv;
-        void main() {
-          vUv = uv;
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-        }
-      `,
-      fragment: `
-        precision highp float;
-        uniform sampler2D tMap;
-        varying vec2 vUv;
-        void main() {
-          vec4 color = texture2D(tMap, vUv);
-          if (color.a < 0.1) discard;
-          gl_FragColor = color;
-        }
-      `,
-      uniforms: { tMap: { value: texture } },
-      transparent: true,
-    });
-    this.mesh = new Mesh(this.gl, { geometry, program });
-    const aspect = width / height;
-    const textHeightScaled = this.plane.scale.y * 0.15;
-    const textWidthScaled = textHeightScaled * aspect;
-    this.mesh.scale.set(textWidthScaled, textHeightScaled, 1);
-    this.mesh.position.y =
-      -this.plane.scale.y * 0.5 - textHeightScaled * 0.5 - 0.05;
-    this.mesh.setParent(this.plane);
-  }
 }
 
 interface ScreenSize {
@@ -423,7 +352,7 @@ interface AppConfig {
   font?: string;
 }
 
-class App {
+class App implements Bindable {
   container: HTMLElement;
   scroll: {
     ease: number;
@@ -432,7 +361,7 @@ class App {
     last: number;
     position?: number;
   };
-  onCheckDebounce: (...args: any[]) => void;
+  onCheckDebounce: EventHandler;
   renderer!: Renderer;
   gl!: GL;
   camera!: Camera;
@@ -444,31 +373,45 @@ class App {
   viewport!: { width: number; height: number };
   raf: number = 0;
 
-  boundOnResize!: () => void;
-  boundOnWheel!: () => void;
-  boundOnTouchDown!: (e: MouseEvent | TouchEvent) => void;
-  boundOnTouchMove!: (e: MouseEvent | TouchEvent) => void;
-  boundOnTouchUp!: () => void;
+  boundOnResize: EventHandler;
+  boundOnWheel: EventHandler<WheelEvent>;
+  boundOnTouchDown: EventHandler<MouseEvent | TouchEvent>;
+  boundOnTouchMove: EventHandler<MouseEvent | TouchEvent>;
+  boundOnTouchUp: EventHandler;
 
   isDown: boolean = false;
   start: number = 0;
   autoScrollSpeed: number = 0.02;
   isAutoScrolling: boolean = true;
 
+  [key: string]: ((...args: unknown[]) => unknown) | unknown;
+
   constructor(
     container: HTMLElement,
     {
-      items,
+      items = [],
       bend = 1,
       textColor = "#ffffff",
       borderRadius = 0.05,
       font = "bold 30px DM Sans",
-    }: AppConfig,
+    }: AppConfig = {}
   ) {
-    document.documentElement.classList.remove("no-js");
     this.container = container;
     this.scroll = { ease: 0.03, current: 0, target: 0, last: 0 };
-    this.onCheckDebounce = debounce(this.onCheck.bind(this), 200);
+    
+    // Bind event handlers
+    this.boundOnResize = () => this.onResize();
+    this.boundOnWheel = (event: WheelEvent) => this.onWheel(event);
+    this.boundOnTouchDown = (event: MouseEvent | TouchEvent) => this.onTouchDown(event);
+    this.boundOnTouchMove = (event: MouseEvent | TouchEvent) => this.onTouchMove(event);
+    this.boundOnTouchUp = (event: Event) => this.onTouchUp(event);
+    
+    this.onCheckDebounce = debounce((event: Event) => {
+      if (event instanceof WheelEvent || event instanceof MouseEvent || event instanceof TouchEvent) {
+        this.onCheck(event);
+      }
+    }, 200);
+
     this.createRenderer();
     this.createCamera();
     this.createScene();
@@ -594,34 +537,35 @@ class App {
     });
   }
 
-  onTouchDown(e: MouseEvent | TouchEvent) {
+  onWheel(event: WheelEvent): void {
+    this.scroll.target += 0.5;
+    this.onCheckDebounce(event);
+  }
+
+  onTouchDown(event: MouseEvent | TouchEvent): void {
     this.isAutoScrolling = false;
     this.isDown = true;
     this.scroll.position = this.scroll.current;
-    this.start = "touches" in e ? e.touches[0].clientX : e.clientX;
+    this.start = event instanceof TouchEvent ? event.touches[0].clientX : event.clientX;
   }
 
-  onTouchMove(e: MouseEvent | TouchEvent) {
+  onTouchMove(event: MouseEvent | TouchEvent): void {
     if (!this.isDown) return;
-    const x = "touches" in e ? e.touches[0].clientX : e.clientX;
+    const x = event instanceof TouchEvent ? event.touches[0].clientX : event.clientX;
     const distance = (this.start - x) * 0.05;
     this.scroll.target = (this.scroll.position ?? 0) + distance;
+    this.onCheckDebounce(event);
   }
 
-  onTouchUp() {
+  onTouchUp(event: Event): void {
     this.isDown = false;
-    this.onCheck();
+    this.onCheck(event);
     setTimeout(() => {
       this.isAutoScrolling = true;
     }, 2000);
   }
 
-  onWheel() {
-    this.scroll.target += 0.5;
-    this.onCheckDebounce();
-  }
-
-  onCheck() {
+  onCheck(event: Event): void {
     if (!this.medias || !this.medias[0]) return;
     const width = this.medias[0].width;
     const itemIndex = Math.round(Math.abs(this.scroll.target) / width);
@@ -629,10 +573,9 @@ class App {
     this.scroll.target = this.scroll.target < 0 ? -item : item;
   }
 
-  onResize() {
+  onResize(): void {
     const width = this.container.clientWidth;
     const height = this.container.clientHeight;
-    const pixelRatio = Math.min(window.devicePixelRatio, 2);
 
     this.screen = {
       width: width,
@@ -688,14 +631,8 @@ class App {
     this.raf = window.requestAnimationFrame(this.update.bind(this));
   }
 
-  addEventListeners() {
-    this.boundOnResize = this.onResize.bind(this);
-    this.boundOnWheel = this.onWheel.bind(this);
-    this.boundOnTouchDown = this.onTouchDown.bind(this);
-    this.boundOnTouchMove = this.onTouchMove.bind(this);
-    this.boundOnTouchUp = this.onTouchUp.bind(this);
+  addEventListeners(): void {
     window.addEventListener("resize", this.boundOnResize);
-    window.addEventListener("mousewheel", this.boundOnWheel);
     window.addEventListener("wheel", this.boundOnWheel);
     window.addEventListener("mousedown", this.boundOnTouchDown);
     window.addEventListener("mousemove", this.boundOnTouchMove);
@@ -708,7 +645,6 @@ class App {
   destroy() {
     window.cancelAnimationFrame(this.raf);
     window.removeEventListener("resize", this.boundOnResize);
-    window.removeEventListener("mousewheel", this.boundOnWheel);
     window.removeEventListener("wheel", this.boundOnWheel);
     window.removeEventListener("mousedown", this.boundOnTouchDown);
     window.removeEventListener("mousemove", this.boundOnTouchMove);

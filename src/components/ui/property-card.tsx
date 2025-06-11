@@ -36,7 +36,9 @@ export function PropertyCard({ property, onClose }: PropertyCardProps) {
     : property.ThumbnailLink || `https://img.youtube.com/vi/${property.YoutubeID}/hqdefault.jpg`;
 
   return (
-    <Card className="fixed right-4 top-20 w-[400px] shadow-lg z-[9999] bg-white">
+    <Card className="fixed lg:right-[420px] lg:top-20 lg:w-[400px] lg:h-[calc(100vh-7rem)] 
+                     fixed bottom-0 left-0 right-0 h-[60vh] 
+                     shadow-lg z-[9999] bg-white overflow-auto">
       <CardHeader className="relative">
         <Button
           variant="ghost"

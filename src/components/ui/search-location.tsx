@@ -35,14 +35,18 @@ export function SearchLocation({ onLocationSelect }: SearchLocationProps) {
     setIsSearching(true);
     try {
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}+bangalore&limit=5&addressdetails=1`,
+        `/api/geocode?q=${encodeURIComponent(query)}`,
         {
           headers: {
-            'Accept': 'application/json',
-            'User-Agent': 'OpenPropertyMap/1.0'
+            'Accept': 'application/json'
           }
         }
       );
+      
+      if (!response.ok) {
+        throw new Error(`API responded with status: ${response.status}`);
+      }
+      
       const data = await response.json();
       setResults(data);
       setOpen(data.length > 0); // Only open if we have results
