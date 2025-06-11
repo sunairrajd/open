@@ -84,7 +84,7 @@ export function PropertyList({ properties, onPropertyClick, setMapView }: Proper
     <Card 
       className={`fixed lg:right-4 lg:top-20 lg:left-8 lg:w-[420px] lg:bottom-4 lg:h-auto 
                 fixed bottom-0 left-0 right-0 
-                ${isExpanded ? 'h-[calc(100vh-4rem)]' : 'h-[40vh]'} 
+                ${isExpanded ? 'h-[calc(100vh-4rem)]' : 'h-[10vh]'} 
                 lg:h-[calc(100vh-7rem)]
                 bg-white lg:bg-white/80 backdrop-blur-sm shadow-lg z-[998]
                 transition-all duration-300 ease-in-out`}
