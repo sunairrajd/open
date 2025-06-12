@@ -21,6 +21,12 @@ const formatPriceInCrores = (price: number) => {
 
 const formatTimeAgo = (date: Date) => {
   const distance = formatDistanceToNow(date, { addSuffix: false });
+  
+  // Check if less than a month old
+  if (distance.includes('days') || distance.includes('hours') || distance.includes('minutes')) {
+    return '🔥 New';
+  }
+  
   return distance
     .replace(' months', 'mo')
     .replace(' month', 'mo')
@@ -82,11 +88,11 @@ export function PropertyList({ properties, onPropertyClick, setMapView }: Proper
 
   return (
     <Card 
-      className={`fixed lg:right-4 lg:top-20 lg:left-8 lg:w-[420px] lg:bottom-4 lg:h-auto 
+      className={`fixed lg:right-4 lg:top-20 lg:left-8 lg:rounded-xl rounded-t-lg rounded-b-none lg:w-[420px] lg:bottom-4 lg:h-auto 
                 fixed bottom-0 left-0 right-0 
-                ${isExpanded ? 'h-[calc(100vh-4rem)]' : 'h-[10vh]'} 
+                ${isExpanded ? 'h-[calc(100vh-4rem)]' : 'h-[90px]'} 
                 lg:h-[calc(100vh-7rem)]
-                bg-white lg:bg-white/80 backdrop-blur-sm shadow-lg z-[998]
+                bg-white lg:bg-white/80 backdrop-blur-sm shadow-lg z-[9998]
                 transition-all duration-300 ease-in-out`}
     >
       <CardContent 
@@ -130,6 +136,15 @@ export function PropertyList({ properties, onPropertyClick, setMapView }: Proper
               >
                 {/* Thumbnail - 16:9 ratio */}
                 <div className="relative w-full lg:w-[184px] aspect-[9/16] rounded-lg overflow-hidden">
+                  <div className="absolute top-2 left-2 z-10">
+                    <span className={`px-1 py-1 text-[10px] rounded-md font-medium backdrop-blur-sm ${
+                      formatTimeAgo(new Date(property.LastUpdated)).includes('New')
+                        ? 'bg-white text-primary'
+                        : 'bg-white text-primary'
+                    }`}>
+                      {formatTimeAgo(new Date(property.LastUpdated))}
+                    </span>
+                  </div>
                   <Image
                     src={`https://img.youtube.com/vi/${property.YoutubeID}/maxresdefault.jpg`}
                     alt={`${property.PropertyType} at ${property.Location}`}
@@ -142,22 +157,14 @@ export function PropertyList({ properties, onPropertyClick, setMapView }: Proper
                 {/* Property Info */}
                 <div className="px-1 py-2 flex-1">
                   <div className="flex justify-between items-center">
-                  <p className=" text-base text-sm"><span className="font-semibold">
-                    {formatPriceInCrores(property.Price)}</span> · <span className="font-regular text-xs">{property.PropertyType}  ({property['Area(Sqft)']} sqft)</span>
-                    
-                  </p>
-                  <p className="text-xs text-base ">
-                    {/* {formatTimeAgo(new Date(property.LastUpdated))} */}
-                    {/* {property.PropertyType}  ({property['Area(Sqft)']} sqft) */}
-                  </p>
+                    <p className="text-base text-sm"><span className="font-semibold">
+                      {formatPriceInCrores(property.Price)}</span> <span className="font-regular text-sm">({property.PropertyType})</span>
+                    </p>
                   </div>
                   <p className="text-xs text-base font-regular text-muted-foreground">
-                     {property.Location} {formatTimeAgo(new Date(property.LastUpdated))}
+                    {property['Area(Sqft)']} sqft · {property.Location}
                   </p>
-                  <p className="text-xs  font-regular text-muted-foreground line-clamp-1 ">
-                   
-                  </p>
-                  
+                  <p className="text-xs font-regular text-muted-foreground line-clamp-1"></p>
                 </div>
               </div>
             ))}

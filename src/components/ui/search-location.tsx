@@ -91,7 +91,7 @@ export function SearchLocation({ onLocationSelect }: SearchLocationProps) {
             <Input
               type="text"
               placeholder="HSR layout, Koramangala"
-              className="text-xs pl-8 w-full bg-gray-100 border-none shadow-none"
+              className="text-sm pl-8 w-full bg-gray-100 border-none shadow-none"
               value={search}
               onChange={handleInputChange}
             />
