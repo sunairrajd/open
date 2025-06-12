@@ -7,7 +7,6 @@ import Image from "next/image";
 import { Button } from "./button";
 import { Hand } from "lucide-react";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 
