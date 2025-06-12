@@ -77,8 +77,8 @@ export default function MapPage() {
         onLocationSelect={handleLocationSelect} 
         onFiltersChange={handleFiltersChange}
       />
-      <main className="flex-1 relative w-full overflow-hidden">
-        <div className="absolute inset-0 overflow-hidden">
+      <main className="flex-1 relative w-full overflow-hidden rounded-lg">
+        <div className="absolute inset-0 overflow-hidden rounded-2xl mx-4 mb-4 ">
           <MapComponent 
             properties={filteredProperties}
             onMapReady={handleMapReady}
