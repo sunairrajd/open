@@ -115,7 +115,7 @@ export default function Home() {
             href="/map"
             className="inline-flex items-center justify-center px-6 py-3 text-base font-medium text-white bg-primary rounded-full hover:bg-primary/90 transition-colors"
           >
-            Explore All Properties
+            Explore All Propertiess
           </a>
         </section>
       </main>
