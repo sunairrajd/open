@@ -67,10 +67,7 @@ export function Header({ onLocationSelect, onFiltersChange }: HeaderProps) {
                 disabled={submitting || !feature.trim()}
                 className="w-full text-white text-xs cursor-pointer"
                 style={{ 
-                  backgroundColor: 'var(--pinkbrand)',
-                  '&:hover': {
-                    backgroundColor: 'color-mix(in srgb, var(--pinkbrand) 80%, transparent)'
-                  }
+                  backgroundColor: 'var(--pinkbrand)'
                 }}
               >
                 {submitting ? "Submitting..." : "Submit"}
