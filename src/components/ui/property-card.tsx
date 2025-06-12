@@ -9,6 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 import type { Property } from "@/app/map/types";
+import { useState } from "react";
 
 interface PropertyCardProps {
   property: Property;
@@ -25,31 +26,33 @@ const formatPricePerSqft = (price: number, area: number) => {
 };
 
 export function PropertyCard({ property, onClose }: PropertyCardProps) {
+  const [showContact, setShowContact] = useState(false);
+
   return (
-    <Card className="fixed lg:left-[460px] lg:top-20 lg:w-[240px] lg:h-[calc(100vh-7rem)] 
+    <Card className="gap-2 fixed lg:left-[460px] lg:top-20 pt-0 lg:w-[240px] lg:h-[calc(100vh-7rem)] 
                      fixed bottom-0 left-0 right-0 h-[60vh] 
                      shadow-lg z-[9999] bg-white overflow-auto">
-      <CardHeader className="relative p-4">
+      <div className="sticky top-0 right-0 p-2 flex justify-end bg-white z-10">
         <Button
           variant="ghost"
           size="icon"
-          className="absolute right-1 top-1"
+          className="h-8 w-8"
           onClick={onClose}
         >
           <X className="h-4 w-4" />
         </Button>
-        <CardTitle className="text-base font-bold pr-6">
-          {formatPriceInCrores(property.Price)}
+      </div>
+      <CardHeader className="relative px-4 py-0 gap-0">
+        <CardTitle className="text-base font-bold mb-1 lg:text-sm md:text-lg">
+          {formatPriceInCrores(property.Price)} <span className="font-regular">({property.PropertyType}) </span>
         </CardTitle>
         <p className="text-xs text-muted-foreground">
-          {property.PropertyType} · {property['Area(Sqft)']} sqft
+           {property['Area(Sqft)']} sqft · {property.Location}
         </p>
-        <p className="text-xs text-muted-foreground">
-          {property.Location}
-        </p>
+        
       </CardHeader>
       
-      <CardContent className="space-y-3 p-4">
+      <CardContent className="space-y-3 px- mt-2">
         {/* Main Details */}
         <div className="space-y-3">
           <div>
@@ -72,7 +75,7 @@ export function PropertyCard({ property, onClose }: PropertyCardProps) {
 
         {/* Dimensions */}
         <div>
-          <h3 className="text-xs font-medium text-muted-foreground mb-2">Dimensions</h3>
+          <h3 className="text-xs font-medium text-muted-foreground mb-1">Dimensions</h3>
           <div className="">
             <p className="text-xs">30ft x 40ft</p>
             
@@ -101,8 +104,8 @@ export function PropertyCard({ property, onClose }: PropertyCardProps) {
 
         {/* Amenities */}
         <div>
-          <h3 className="text-xs font-medium text-muted-foreground mb-2">Amenities</h3>
-          <div className="flex flex-wrap gap-2">
+          <h3 className="text-xs font-medium text-muted-foreground mb-1">Amenities</h3>
+          <div className="flex flex-wrap gap-1">
             {['Swimming Pool', 'Gym', 'Club House', 'Children\'s Play Area', 'Security'].map((amenity) => (
               <span key={amenity} className="px-2 py-1 bg-accent rounded-md text-xs">
                 {amenity}
@@ -113,32 +116,47 @@ export function PropertyCard({ property, onClose }: PropertyCardProps) {
 
         {/* Connectivity */}
         <div>
-          <h3 className="text-xs font-medium text-muted-foreground mb-2">Connectivity</h3>
+          <h3 className="text-xs font-medium text-muted-foreground mb-1">Connectivity</h3>
           <div className="space-y-1">
-            <p className="text-xs">• Metro Station - 1.2 km</p>
-            <p className="text-xs">• Bus Stop - 0.5 km</p>
-            <p className="text-xs">• Railway Station - 3 km</p>
+            <p className="text-xs">Metro Station - 1.2 km</p>
+            <p className="text-xs">Bus Stop - 0.5 km</p>
+            <p className="text-xs">Railway Station - 3 km</p>
           </div>
         </div>
 
         {/* Nearby */}
         <div>
-          <h3 className="text-xs font-medium text-muted-foreground mb-2">Nearby</h3>
+          <h3 className="text-xs font-medium text-muted-foreground mb-1">Nearby</h3>
           <div className="space-y-1">
-            <p className="text-xs">• Schools: DPS (1km), Ryan International (2km)</p>
-            <p className="text-xs">• Hospitals: Apollo (1.5km), Fortis (3km)</p>
-            <p className="text-xs">• Shopping: Central Mall (1km), City Center (2km)</p>
+            <p className="text-xs">Schools: DPS (1km), Ryan International (2km)</p>
+            <p className="text-xs">Hospitals: Apollo (1.5km), Fortis (3km)</p>
+            <p className="text-xs">Shopping: Central Mall (1km), City Center (2km)</p>
           </div>
         </div>
 
         {/* Contact Details */}
-        <div className="bg-accent/10 rounded-lg">
-          <h3 className="text-xs font-medium mb-2">Contact Details</h3>
-          <div className="space-y-1">
-            <p className="text-xs">Owner: John Doe</p>
-            <p className="text-xs">Phone: +91 98765 43210</p>
-            <p className="text-xs">Email: john.doe@example.com</p>
-          </div>
+        <div className="bg-accent/10 rounded-lg pt-4">
+          {!showContact ? (
+            <Button 
+              variant="default" 
+              className="w-full text-white text-xs transition-colors"
+              style={{ 
+                backgroundColor: 'var(--pinkbrand)'
+              }}
+              onClick={() => setShowContact(true)}
+            >
+              View Contact Details
+            </Button>
+          ) : (
+            <>
+              <h3 className="text-xs font-medium mb-2">Contact Details</h3>
+              <div className="space-y-1">
+                <p className="text-xs">Owner: John Doe</p>
+                <p className="text-xs">Phone: +91 98765 43210</p>
+                <p className="text-xs">Email: john.doe@example.com</p>
+              </div>
+            </>
+          )}
         </div>
       </CardContent>
     </Card>

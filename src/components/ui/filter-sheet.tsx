@@ -137,9 +137,9 @@ export function FilterSheet({ onFiltersChange }: FilterSheetProps) {
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger asChild>
           <div className="relative inline-block">
-            <Button variant="outline" size="sm" className="text-xs rounder-md cursor-pointer">
-             <ListFilter />
-              Filters
+            <Button variant="outline" size="sm" className="text-xs rounder-md cursor-pointer ">
+              <ListFilter className=" mx-2 md:mx-0 " />
+              <span className="hidden md:inline text-xs">Filters</span>
             </Button>
             {getActiveFilterCount() > 0 && (
               <Badge
