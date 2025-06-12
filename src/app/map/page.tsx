@@ -72,13 +72,13 @@ export default function MapPage() {
     : listings;
 
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col h-[100dvh] overflow-hidden">
       <Header 
         onLocationSelect={handleLocationSelect} 
         onFiltersChange={handleFiltersChange}
       />
-      <main className="flex-1 relative w-full px-4 rounded-lg">
-        <div className="absolute inset-0 mx-4 mb-4 rounded-2xl overflow-hidden">
+      <main className="flex-1 relative w-full overflow-hidden">
+        <div className="absolute inset-0 overflow-hidden">
           <MapComponent 
             properties={filteredProperties}
             onMapReady={handleMapReady}

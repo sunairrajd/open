@@ -90,8 +90,8 @@ export function PropertyList({ properties, onPropertyClick, setMapView }: Proper
     <Card 
       className={`fixed lg:right-4 lg:top-20 lg:left-8 lg:rounded-xl rounded-t-lg rounded-b-none lg:w-[420px] lg:bottom-4 lg:h-auto 
                 fixed bottom-0 left-0 right-0 
-                ${isExpanded ? 'h-[calc(100vh-4rem)]' : 'h-[90px]'} 
-                lg:h-[calc(100vh-7rem)]
+                ${isExpanded ? 'h-[calc(100dvh-4rem)]' : 'h-[90px]'} 
+                lg:h-[calc(100dvh-7rem)]
                 bg-white lg:bg-white/80 backdrop-blur-sm shadow-lg z-[9998]
                 transition-all duration-300 ease-in-out`}
     >
@@ -126,7 +126,7 @@ export function PropertyList({ properties, onPropertyClick, setMapView }: Proper
             </Button>
           </div>
         </div>
-        <div ref={scrollAreaRef} className={`${isExpanded ? 'h-[calc(100vh-10rem)]' : 'h-[calc(40vh-6rem)]'} lg:h-[calc(100vh-10rem)] overflow-auto `}>
+        <div ref={scrollAreaRef} className={`${isExpanded ? 'h-[calc(100dvh-10rem)]' : 'h-[calc(40dvh-6rem)]'} lg:h-[calc(100dvh-10rem)] overflow-auto pb-safe`}>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 auto-rows-max px-4 lg:px-0">
             {properties.map((property, index) => (
               <div
