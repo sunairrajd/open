@@ -15,12 +15,6 @@ const MapComponent = dynamic(() => import('./MapComponent'), {
 export default function MapPage() {
   const [setMapView, setSetMapView] = useState<((lat: number, lon: number) => void) | null>(null);
   const [activeFilters, setActiveFilters] = useState<FilterState | null>(null);
-  const [currentBounds, setCurrentBounds] = useState<{
-    north: number;
-    south: number;
-    east: number;
-    west: number;
-  } | null>(null);
 
   const handleMapReady = useCallback((setView: (lat: number, lon: number) => void) => {
     console.log('Map is ready');
@@ -48,9 +42,7 @@ export default function MapPage() {
       <main className="flex-1 relative w-full overflow-hidden rounded-lg">
         <div className="absolute inset-0 overflow-hidden rounded-2xl mx-4 mb-4 ">
           <MapComponent 
-            properties={[]}
             onMapReady={handleMapReady}
-            onBoundsChange={setCurrentBounds}
             activeFilters={activeFilters}
           />
         </div>
