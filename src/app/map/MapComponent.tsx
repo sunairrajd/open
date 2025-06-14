@@ -80,7 +80,6 @@ export default function MapComponent({
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [visibleProperties, setVisibleProperties] = useState<Property[]>([]);
   const [isMapInitialized, setIsMapInitialized] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
 
   // Add debug logging for activeFilters changes
   useEffect(() => {
@@ -132,8 +131,6 @@ export default function MapComponent({
       }
 
       // Fetch properties for the new bounds
-      setIsLoading(true);
-      
       // Build query parameters using fresh bounds
       const params = new URLSearchParams({
         latitudeMin: newBounds.south.toString(),
@@ -197,9 +194,6 @@ export default function MapComponent({
         })
         .catch(error => {
           console.error('Error fetching properties:', error);
-        })
-        .finally(() => {
-          setIsLoading(false);
         });
     } catch (error) {
       console.error('Error in handleMoveEnd:', error);
@@ -372,12 +366,10 @@ export default function MapComponent({
     }
 
     try {
-  
       const mapBounds = mapRef.current.getBounds();
       console.log('Current map bounds from filter effect:', mapBounds);
       
       // Fetch properties for current bounds with new filters
-      setIsLoading(true);
       const fetchProperties = async () => {
         try {
           const params = new URLSearchParams({
@@ -441,8 +433,6 @@ export default function MapComponent({
           setVisibleProperties(data);
         } catch (error) {
           console.error('Error fetching properties:', error);
-        } finally {
-          setIsLoading(false);
         }
       };
 
@@ -542,30 +532,6 @@ export default function MapComponent({
       <div className="relative h-full w-full">
         <div id="map" className="h-full w-full"></div>
         
-        {/* Loading indicator */}
-        {isLoading && (
-          <div className="absolute inset-0 bg-black/10 flex items-center justify-center z-[1000001]">
-            <div className="bg-white p-4 rounded-lg shadow-lg">
-              Loading properties...
-            </div>
-          </div>
-        )}
-        
-        {/* Status overlay */}
-        {/* <div className="absolute bottom-4 left-4 bg-white/90 p-4 rounded-lg shadow-lg border border-gray-200" style={{zIndex: 1000000}}>
-          {currentBounds && (
-            <div className="text-sm text-gray-900">
-              <div className="font-bold mb-2 text-base">Properties in view:</div>
-              <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-                <div className="font-medium">North: {currentBounds.north}°</div>
-                <div className="font-medium">South: {currentBounds.south}°</div>
-                <div className="font-medium">East: {currentBounds.east}°</div>
-                <div className="font-medium">West: {currentBounds.west}°</div>
-              </div>
-            </div>
-          )}
-        </div> */}
-
         {/* Property List */}
         <PropertyList 
           properties={visibleProperties}
