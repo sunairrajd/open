@@ -27,7 +27,6 @@ L.Icon.Default.mergeOptions({
 });
 
 interface MapComponentProps {
-  properties: Property[];
   onMapReady?: (setView: (lat: number, lon: number) => void) => void;
   onBoundsChange?: (bounds: MapBounds) => void;
   activeFilters: FilterState | null;
@@ -46,18 +45,6 @@ const formatPriceInCrores = (price: number) => {
   return `₹${crores}Cr`;
 };
 
-// Function to check if a property is within bounds
-const isPropertyInBounds = (property: Property, bounds: MapBounds) => {
-  const lat = Number(property.latitude);
-  const lng = Number(property.longitude);
-  return (
-    lat <= bounds.north &&
-    lat >= bounds.south &&
-    lng <= bounds.east &&
-    lng >= bounds.west
-  );
-};
-
 // Add this function to group properties by coordinates
 const groupPropertiesByLocation = (properties: Property[]) => {
   const groups = new Map<string, Property[]>();
@@ -74,7 +61,6 @@ const groupPropertiesByLocation = (properties: Property[]) => {
 };
 
 export default function MapComponent({ 
-  properties: initialProperties = [], 
   onMapReady, 
   onBoundsChange,
   activeFilters 
@@ -171,7 +157,7 @@ export default function MapComponent({
         }
 
         if (activeFilters.propertyType) {
-          let typology = activeFilters.propertyType.toUpperCase();
+          const typology = activeFilters.propertyType.toUpperCase();
           params.append('typology', typology);
         }
 
@@ -416,7 +402,7 @@ export default function MapComponent({
             }
 
             if (activeFilters.propertyType) {
-              let typology = activeFilters.propertyType.toUpperCase();
+              const typology = activeFilters.propertyType.toUpperCase();
               params.append('typology', typology);
             }
 
@@ -555,6 +541,15 @@ export default function MapComponent({
       `}</style>
       <div className="relative h-full w-full">
         <div id="map" className="h-full w-full"></div>
+        
+        {/* Loading indicator */}
+        {isLoading && (
+          <div className="absolute inset-0 bg-black/10 flex items-center justify-center z-[1000001]">
+            <div className="bg-white p-4 rounded-lg shadow-lg">
+              Loading properties...
+            </div>
+          </div>
+        )}
         
         {/* Status overlay */}
         <div className="absolute bottom-4 left-4 bg-white/90 p-4 rounded-lg shadow-lg border border-gray-200" style={{zIndex: 1000000}}>
