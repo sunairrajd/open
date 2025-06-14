@@ -552,7 +552,7 @@ export default function MapComponent({
         )}
         
         {/* Status overlay */}
-        <div className="absolute bottom-4 left-4 bg-white/90 p-4 rounded-lg shadow-lg border border-gray-200" style={{zIndex: 1000000}}>
+        {/* <div className="absolute bottom-4 left-4 bg-white/90 p-4 rounded-lg shadow-lg border border-gray-200" style={{zIndex: 1000000}}>
           {currentBounds && (
             <div className="text-sm text-gray-900">
               <div className="font-bold mb-2 text-base">Properties in view:</div>
@@ -564,7 +564,7 @@ export default function MapComponent({
               </div>
             </div>
           )}
-        </div>
+        </div> */}
 
         {/* Property List */}
         <PropertyList 
