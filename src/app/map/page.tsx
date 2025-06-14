@@ -1,7 +1,7 @@
 'use client';
 
+import React from 'react';
 import dynamic from 'next/dynamic';
-import listings from '../../../public/dummy_real_estate_listings_adjusted.json';
 import { Header } from '@/components/ui/header';
 import { useState, useCallback } from 'react';
 import type { FilterState } from '@/components/ui/filter-sheet';
@@ -39,38 +39,6 @@ export default function MapPage() {
     setActiveFilters(filters);
   };
 
-  // Filter properties based on active filters and current bounds
-  const filteredProperties = activeFilters
-    ? listings.filter(property => {
-        // First check if the property is within current bounds if we have them
-        if (currentBounds) {
-          const [lat, lng] = property.Coordinates.split(',').map(Number);
-          const isInBounds = 
-            lat <= currentBounds.north &&
-            lat >= currentBounds.south &&
-            lng <= currentBounds.east &&
-            lng >= currentBounds.west;
-          
-          if (!isInBounds) return false;
-        }
-
-        // Then apply other filters
-        if (activeFilters.propertyType && property.PropertyType.toLowerCase() !== activeFilters.propertyType) {
-          return false;
-        }
-
-        if (property.Price < activeFilters.priceRange.min || property.Price > activeFilters.priceRange.max) {
-          return false;
-        }
-
-        if (property['Area(Sqft)'] < activeFilters.areaRange.min || property['Area(Sqft)'] > activeFilters.areaRange.max) {
-          return false;
-        }
-
-        return true;
-      })
-    : listings;
-
   return (
     <div className="flex flex-col h-[100dvh] overflow-hidden">
       <Header 
@@ -80,7 +48,7 @@ export default function MapPage() {
       <main className="flex-1 relative w-full overflow-hidden rounded-lg">
         <div className="absolute inset-0 overflow-hidden rounded-2xl mx-4 mb-4 ">
           <MapComponent 
-            properties={filteredProperties}
+            properties={[]}
             onMapReady={handleMapReady}
             onBoundsChange={setCurrentBounds}
             activeFilters={activeFilters}

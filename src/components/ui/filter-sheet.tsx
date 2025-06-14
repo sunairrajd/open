@@ -84,12 +84,14 @@ export function FilterSheet({ onFiltersChange }: FilterSheetProps) {
   };
 
   const handleFiltersChange = useCallback((newFilters: FilterState) => {
+    console.log('Filter change triggered:', newFilters);
     if (onFiltersChange) {
       onFiltersChange(newFilters);
     }
   }, [onFiltersChange]);
 
   const handleApplyFilters = () => {
+    console.log('Applying filters:', filters);
     handleFiltersChange(filters);
     setOpen(false);
   };

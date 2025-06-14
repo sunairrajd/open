@@ -14,13 +14,13 @@ interface PropertyListProps {
   setMapView?: (lat: number, lon: number) => void;
 }
 
-const formatPriceInCrores = (price: number) => {
-  const crores = (price / 10000000).toFixed(2);
+const formatPriceInCrores = (price: string) => {
+  const crores = (Number(price) / 10000000).toFixed(2);
   return `₹${crores}Cr`;
 };
 
-const formatTimeAgo = (date: Date) => {
-  const distance = formatDistanceToNow(date, { addSuffix: false });
+const formatTimeAgo = (date: string) => {
+  const distance = formatDistanceToNow(new Date(date), { addSuffix: false });
   
   // Check if less than a month old
   if (distance.includes('days') || distance.includes('hours') || distance.includes('minutes')) {
@@ -54,8 +54,7 @@ export function PropertyList({ properties, onPropertyClick, setMapView }: Proper
   const handlePropertyClick = (property: Property) => {
     onPropertyClick(property);
     if (setMapView) {
-      const [lat, lon] = property.Coordinates.split(',').map(Number);
-      setMapView(lat, lon);
+      setMapView(Number(property.latitude), Number(property.longitude));
     }
   };
 
@@ -126,28 +125,37 @@ export function PropertyList({ properties, onPropertyClick, setMapView }: Proper
             </Button>
           </div>
         </div>
-        <div ref={scrollAreaRef} className={`${isExpanded ? 'h-[calc(100dvh-10rem)]' : 'h-[calc(40dvh-6rem)]'} lg:h-[calc(100dvh-10rem)] overflow-auto pb-safe`}>
+        <div ref={scrollAreaRef} className={`${isExpanded ? 'h-[calc(100dvh-10rem)]' : 'h-[calc(40dvh-6rem)]'} lg:h-[calc(100dvh-10rem)] overflow-auto pb-safe scrollbar-hide`}>
+          <style jsx global>{`
+            .scrollbar-hide {
+              -ms-overflow-style: none;  /* IE and Edge */
+              scrollbar-width: none;  /* Firefox */
+            }
+            .scrollbar-hide::-webkit-scrollbar {
+              display: none;  /* Chrome, Safari and Opera */
+            }
+          `}</style>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 auto-rows-max px-4 lg:px-0">
             {properties.map((property, index) => (
               <div
-                key={`${property.Location}-${index}`}
-                className="flex flex-col rounded-lg hover:bg-accent/10 cursor-pointer transition-colors overflow-hidden w-full lg:w-[184px] mx-auto"
+                key={`${property.cleaned_location}-${index}`}
+                className="flex flex-col rounded-xl hover:bg-accent/10 cursor-pointer transition-colors overflow-hidden w-full lg:w-[184px] mx-auto"
                 onClick={() => handlePropertyClick(property)}
               >
                 {/* Thumbnail - 16:9 ratio */}
                 <div className="relative w-full lg:w-[184px] aspect-[9/16] rounded-lg overflow-hidden">
                   <div className="absolute top-2 left-2 z-10">
                     <span className={`px-1 py-1 text-[10px] rounded-md font-medium backdrop-blur-sm ${
-                      formatTimeAgo(new Date(property.LastUpdated)).includes('New')
+                      formatTimeAgo(property.upload_date).includes('New')
                         ? 'bg-white text-primary'
                         : 'bg-white text-primary'
                     }`}>
-                      {formatTimeAgo(new Date(property.LastUpdated))}
+                      {formatTimeAgo(property.upload_date)}
                     </span>
                   </div>
                   <Image
-                    src={`https://img.youtube.com/vi/${property.YoutubeID}/maxresdefault.jpg`}
-                    alt={`${property.PropertyType} at ${property.Location}`}
+                    src={`https://img.youtube.com/vi/${property.youtube_id}/maxresdefault.jpg`}
+                    alt={`${property.property_type} at ${property.cleaned_location}`}
                     fill
                     className="object-cover"
                     sizes="(max-width: 768px) 100vw, 184px"
@@ -158,11 +166,11 @@ export function PropertyList({ properties, onPropertyClick, setMapView }: Proper
                 <div className="px-1 py-2 flex-1">
                   <div className="flex justify-between items-center">
                     <p className="text-base text-sm"><span className="font-semibold">
-                      {formatPriceInCrores(property.Price)}</span> <span className="font-regular text-sm">({property.PropertyType})</span>
+                      {formatPriceInCrores(property.price_overall)}</span> <span className="font-regular text-sm">({property.property_type})</span>
                     </p>
                   </div>
                   <p className="text-xs text-base font-regular text-muted-foreground">
-                    {property['Area(Sqft)']} sqft · {property.Location}
+                    {property.sqft} sqft · {property.cleaned_location}
                   </p>
                   <p className="text-xs font-regular text-muted-foreground line-clamp-1"></p>
                 </div>
