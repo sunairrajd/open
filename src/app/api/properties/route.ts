@@ -82,7 +82,7 @@ export async function GET(request: Request) {
     }
 
     const data = await response.json();
-    console.log('API response data:', data);
+    console.log('API response data sample:', data.slice(0, 1)); // Log first item for debugging
     return NextResponse.json(data);
   } catch (error) {
     console.error('Error fetching properties:', error);

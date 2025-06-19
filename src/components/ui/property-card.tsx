@@ -125,11 +125,15 @@ export function PropertyCard({ property, onClose }: PropertyCardProps) {
         <div>
           <h3 className="text-xs font-medium text-muted-foreground mb-1">Amenities</h3>
           <div className="flex flex-wrap gap-1">
-            {property.amenities.split(', ').map((amenity) => (
-              <span key={amenity} className="px-2 py-1 bg-accent rounded-md text-xs">
-                {amenity}
-              </span>
-            ))}
+            {property.amenities && property.amenities !== 'NA' ? (
+              property.amenities.split(', ').map((amenity) => (
+                <span key={amenity} className="px-2 py-1 bg-accent rounded-md text-xs">
+                  {amenity}
+                </span>
+              ))
+            ) : (
+              <span className="text-xs text-muted-foreground">No amenities listed</span>
+            )}
           </div>
         </div>
 
@@ -137,9 +141,13 @@ export function PropertyCard({ property, onClose }: PropertyCardProps) {
         <div>
           <h3 className="text-xs font-medium text-muted-foreground mb-1">Connectivity</h3>
           <div className="space-y-1">
-            {property.connectivity.split(', ').map((item, index) => (
-              <p key={index} className="text-xs">{item}</p>
-            ))}
+            {property.connectivity && property.connectivity !== 'NA' ? (
+              property.connectivity.split(', ').map((item, index) => (
+                <p key={index} className="text-xs">{item}</p>
+              ))
+            ) : (
+              <p className="text-xs text-muted-foreground">No connectivity information available</p>
+            )}
           </div>
         </div>
 
@@ -147,12 +155,12 @@ export function PropertyCard({ property, onClose }: PropertyCardProps) {
         <div>
           <h3 className="text-xs font-medium text-muted-foreground mb-1">Nearby</h3>
           <div className="space-y-1">
-            {property.nearby === 'NA' ? (
-              <p className="text-xs">No nearby information available</p>
-            ) : (
+            {property.nearby && property.nearby !== 'NA' ? (
               property.nearby.split(', ').map((item, index) => (
                 <p key={index} className="text-xs">{item}</p>
               ))
+            ) : (
+              <p className="text-xs text-muted-foreground">No nearby information available</p>
             )}
           </div>
         </div>

@@ -20,28 +20,43 @@ const formatPriceInCrores = (price: string) => {
 };
 
 const formatTimeAgo = (date: string) => {
-  const distance = formatDistanceToNow(new Date(date), { addSuffix: false });
-  
-  // Check if less than a month old
-  if (distance.includes('days') || distance.includes('hours') || distance.includes('minutes')) {
-    return '🔥 New';
+  try {
+    // Test if the date is valid
+    const parsedDate = new Date(date);
+    if (isNaN(parsedDate.getTime())) {
+      throw new Error('Invalid date');
+    }
+
+    const now = new Date();
+    const diffInDays = (now.getTime() - parsedDate.getTime()) / (1000 * 60 * 60 * 24);
+    
+    // Show 🔥 New for properties less than 30 days old
+    if (diffInDays <= 30) {
+      return '🔥 New';
+    }
+
+    const distance = formatDistanceToNow(parsedDate, { addSuffix: false });
+    console.log('Date:', date, 'Distance:', distance, 'Days diff:', diffInDays);
+    
+    return distance
+      .replace(' months', 'mo')
+      .replace(' month', 'mo')
+      .replace(' years', 'y')
+      .replace(' year', 'y')
+      .replace(' days', 'd')
+      .replace(' day', 'd')
+      .replace(' hours', 'h')
+      .replace(' hour', 'h')
+      .replace(' minutes', 'm')
+      .replace(' minute', 'm')
+      .replace('about ', '')
+      .replace('over ', '')
+      .replace('almost ', '')
+      .replace('less than ', '<') + ' ago';
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return 'Date unknown';
   }
-  
-  return distance
-    .replace(' months', 'mo')
-    .replace(' month', 'mo')
-    .replace(' years', 'y')
-    .replace(' year', 'y')
-    .replace(' days', 'd')
-    .replace(' day', 'd')
-    .replace(' hours', 'h')
-    .replace(' hour', 'h')
-    .replace(' minutes', 'm')
-    .replace(' minute', 'm')
-    .replace('about ', '')
-    .replace('over ', '')
-    .replace('almost ', '')
-    .replace('less than ', '<') + ' ago';
 };
 
 export function PropertyList({ properties, onPropertyClick, setMapView }: PropertyListProps) {
@@ -153,13 +168,33 @@ export function PropertyList({ properties, onPropertyClick, setMapView }: Proper
                       {formatTimeAgo(property.upload_date)}
                     </span>
                   </div>
-                  <Image
-                    src={`https://img.youtube.com/vi/${property.youtube_id}/maxresdefault.jpg`}
-                    alt={`${property.property_type} at ${property.cleaned_location}`}
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 768px) 100vw, 184px"
-                  />
+                  {property.youtube_id ? (
+                    <Image
+                      src={`https://img.youtube.com/vi/${property.youtube_id}/hqdefault.jpg`}
+                      alt={`${property.property_type} at ${property.cleaned_location}`}
+                      fill
+                      // unoptimized={true}
+                      className="object-cover"
+                      sizes="(max-width: 768px) 100vw, 184px"
+                      onError={(e) => {
+                        // If maxresdefault fails, try hqdefault
+                        const img = e.target as HTMLImageElement;
+                        if (img.src.includes('maxresdefault')) {
+                          img.src = `https://img.youtube.com/vi/${property.youtube_id}/hqdefault.jpg`;
+                        } else if (img.src.includes('hqdefault')) {
+                          // If hqdefault fails, try mqdefault
+                          img.src = `https://img.youtube.com/vi/${property.youtube_id}/mqdefault.jpg`;
+                        } else if (img.src.includes('mqdefault')) {
+                          // If mqdefault fails, try default
+                          img.src = `https://img.youtube.com/vi/${property.youtube_id}/default.jpg`;
+                        }
+                      }}
+                    />
+                  ) : (
+                    <div className="absolute inset-0 bg-accent flex items-center justify-center">
+                      <p className="text-sm text-muted-foreground">No image available</p>
+                    </div>
+                  )}
                 </div>
 
                 {/* Property Info */}
