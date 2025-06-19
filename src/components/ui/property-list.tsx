@@ -59,6 +59,17 @@ const formatTimeAgo = (date: string) => {
   }
 };
 
+const formatTypology = (typology: string | null | undefined): string => {
+  if (!typology) return '';
+  try {
+    const types = JSON.parse(typology);
+    return Array.isArray(types) ? types.join('/') : '';
+  } catch (error) {
+    console.error('Error parsing typology:', error);
+    return '';
+  }
+};
+
 export function PropertyList({ properties, onPropertyClick, setMapView }: PropertyListProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -203,7 +214,11 @@ export function PropertyList({ properties, onPropertyClick, setMapView }: Proper
                     <p className="text-base text-sm"><span className="font-semibold">
                       {formatPriceInCrores(property.price_overall)}</span> <span className="font-regular text-sm">({property.property_type})</span>
                     </p>
+                  
                   </div>
+                  <p className="text-base text-xs">
+                      {formatTypology(property.typology)}
+                    </p>
                   <p className="text-xs text-base font-regular text-muted-foreground">
                     {property.sqft} sqft · {property.cleaned_location}
                   </p>

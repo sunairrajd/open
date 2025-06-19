@@ -25,6 +25,17 @@ const formatPricePerSqft = (price: string, area: number) => {
   return `₹${Math.round(Number(price) / area).toLocaleString('en-IN')}/sqft`;
 };
 
+const formatTypology = (typology: string | null | undefined): string => {
+  if (!typology) return '';
+  try {
+    const types = JSON.parse(typology);
+    return Array.isArray(types) ? types.join('/') : '';
+  } catch (error) {
+    console.error('Error parsing typology:', error);
+    return '';
+  }
+};
+
 export function PropertyCard({ property, onClose }: PropertyCardProps) {
   const [showContact, setShowContact] = useState(false);
 
@@ -64,12 +75,24 @@ export function PropertyCard({ property, onClose }: PropertyCardProps) {
             />
           </div>
 
-          {formatPriceInCrores(property.price_overall)} <span className="font-regular">({property.property_type}) </span>
+          {Number(property.price_overall) === 0 ? (
+            <>
+              <span className="font-regular">Price on request</span>
+              <span className="font-regular"> ({property.property_type})</span>
+            </>
+          ) : (
+            <>
+              {formatPriceInCrores(property.price_overall)} <span className="font-regular">({property.property_type})</span>
+            </>
+          )}
         </CardTitle>
 
-        <p className="text-xs text-muted-foreground">
-          {property.sqft} sqft · {property.cleaned_location}
-        </p>
+        <div className="flex flex-col gap-1">
+          <p className="text-xs text-muted-foreground">
+            {property.sqft} sqft · {property.cleaned_location}
+          </p>
+         
+        </div>
       </CardHeader>
       
       <CardContent className="space-y-3 px- mt-2">
@@ -79,6 +102,18 @@ export function PropertyCard({ property, onClose }: PropertyCardProps) {
             <h3 className="text-xs font-medium text-muted-foreground">Area</h3>
             <p className="text-xs">{property.sqft} sqft</p>
           </div>
+
+          <div>
+            <h3 className="text-xs font-medium text-muted-foreground">Property Type</h3>
+            {formatTypology(property.typology) && (
+            <p className="text-xs ">
+              {formatTypology(property.typology)}
+            </p>
+          )}
+          </div>
+
+          
+
           <div>
             <h3 className="text-xs font-medium text-muted-foreground">Price per sqft</h3>
             <p className="text-xs">{formatPricePerSqft(property.price_overall, property.sqft)}</p>

@@ -2,17 +2,24 @@
 
 interface MarkerButtonProps {
   price: string;
-  lastUpdated: string;
+  lastUpdated: string;  // This is actually upload_date from the cleandata table
   className?: string;
 }
 
-export function MarkerButton({ price, lastUpdated, className = '' }: MarkerButtonProps) {
+export function MarkerButton({ price, lastUpdated: uploadDate, className = '' }: MarkerButtonProps) {
   const isRecentlyUpdated = () => {
-    const threeMonthsAgo = new Date();
-    threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
-    const updateDate = new Date(lastUpdated);
-    return updateDate > threeMonthsAgo;
+    try {
+      const now = new Date();
+      const updateDate = new Date(uploadDate);
+      const diffInDays = (now.getTime() - updateDate.getTime()) / (1000 * 60 * 60 * 24);
+      return diffInDays <= 30; // Show flame for properties less than 30 days old
+    } catch (error) {
+      console.error('Error calculating date difference:', error);
+      return false;
+    }
   };
+
+  const isPriceZero = price === '0.00Cr' || price === null || price === undefined;
 
   return (
     <div className={`
@@ -28,8 +35,14 @@ export function MarkerButton({ price, lastUpdated, className = '' }: MarkerButto
       transition-all duration-200 ease-in-out
       ${className}
     `}>
-      <span className="text-[#084DCB] text-[11px] font-normal font-sans">₹</span>
-      <span className="text-[#084DCB] text-[11px] font-semibold font-sans">{price}</span>
+      {isPriceZero ? (
+        <span className="text-[#084DCB] text-[11px] font-normal font-sans">📞</span>
+      ) : (
+        <>
+          <span className="text-[#084DCB] text-[11px] font-normal font-sans">₹</span>
+          <span className="text-[#084DCB] text-[11px] font-semibold font-sans">{price}</span>
+        </>
+      )}
       {isRecentlyUpdated() && (
         <span className="text-[#084DCB] text-[11px] font-normal font-sans ml-[1px]">🔥</span>
       )}

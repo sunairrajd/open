@@ -225,7 +225,7 @@ export default function MapComponent({
       mapRef.current = map;
 
       // Add tile layer with error handling
-      const tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      const tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
         maxZoom: 19,
         attribution: '© OpenStreetMap contributors, © CARTO'
       });
@@ -468,7 +468,7 @@ export default function MapComponent({
             html: ReactDOMServer.renderToString(
               <MarkerButton 
                 price={formattedPrice.replace('₹', '')} 
-                lastUpdated={property.last_synced_date}
+                lastUpdated={property.upload_date}
               />
             ),
             iconSize: [60, 24],
