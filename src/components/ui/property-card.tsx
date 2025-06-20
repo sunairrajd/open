@@ -41,8 +41,8 @@ export function PropertyCard({ property, onClose }: PropertyCardProps) {
 
   return (
     <Card className="gap-2 fixed lg:left-[460px] lg:top-20 pt-0 lg:w-[240px] lg:h-[calc(100vh-7rem)] 
-                     fixed bottom-0 left-0 right-0 h-screen 
-                     shadow-lg z-[9999] bg-white overflow-auto scrollbar-hide">
+                     fixed bottom-0 left-0 right-0 h-[100dvh] 
+                     shadow-lg z-[9999] bg-white overflow-auto scrollbar-hide lg:pt-0 pt-safe">
       <style jsx global>{`
         .scrollbar-hide {
           -ms-overflow-style: none;  /* IE and Edge */
@@ -51,8 +51,13 @@ export function PropertyCard({ property, onClose }: PropertyCardProps) {
         .scrollbar-hide::-webkit-scrollbar {
           display: none;  /* Chrome, Safari and Opera */
         }
+        @supports(padding: max(0px)) {
+          .pt-safe {
+            padding-top: max(0px, env(safe-area-inset-top));
+          }
+        }
       `}</style>
-      <div className="sticky top-0 right-0 p-2 flex justify-end bg-white z-[11]">
+      <div className="sticky top-0 right-0 p-2 flex justify-end bg-white z-[11] mt-safe">
         <Button
           variant="ghost"
           size="icon"
@@ -64,7 +69,7 @@ export function PropertyCard({ property, onClose }: PropertyCardProps) {
       </div>
 
       {/* Video Section */}
-      <div className="sticky top-10 bg-white z-[11] px-4 py-0">
+      <div className="sticky top-[calc(0.5rem+env(safe-area-inset-top))] bg-white z-[11] px-4 py-0">
         <div className={`relative h-full ${property.video_type === 'S' ? 'aspect-[9/16]' : 'aspect-video'}`}>
           <iframe
             src={`https://www.youtube.com/embed/${property.youtube_id}?autoplay=1&mute=0`}
