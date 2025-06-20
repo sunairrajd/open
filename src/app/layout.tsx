@@ -34,7 +34,8 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${geist.variable} ${lexend.variable} antialiased h-[100dvh]`}>
       <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
       </head>
       <body className={`${geist.className} h-[100dvh] overflow-hidden`}>
         <Analytics />

@@ -117,7 +117,7 @@ export default function MapComponent({
       // Always get fresh bounds from the latest map state
       const map = mapRef.current;
       const mapBounds = map.getBounds();
-      const newBounds = {
+    const newBounds = {
         north: mapBounds.getNorth(),
         south: mapBounds.getSouth(),
         east: mapBounds.getEast(),
@@ -125,10 +125,10 @@ export default function MapComponent({
       };
       
       console.log('New bounds from handleMoveEnd:', newBounds);
-      setCurrentBounds(newBounds);
-      if (onBoundsChange) {
-        onBoundsChange(newBounds);
-      }
+    setCurrentBounds(newBounds);
+    if (onBoundsChange) {
+      onBoundsChange(newBounds);
+    }
 
       // Fetch properties for the new bounds
       // Build query parameters using fresh bounds
@@ -211,18 +211,18 @@ export default function MapComponent({
         attributionControl: false
       });
     
-      // Add zoom control with custom class for responsive visibility
-      const zoomControl = L.control.zoom({ position: 'bottomright' });
-      zoomControl.addTo(map);
-      // Add custom class to zoom control container
-      const zoomContainer = zoomControl.getContainer();
-      if (zoomContainer) {
-        zoomContainer.className += ' hidden lg:block';
-      }
+    // Add zoom control with custom class for responsive visibility
+    const zoomControl = L.control.zoom({ position: 'bottomright' });
+    zoomControl.addTo(map);
+    // Add custom class to zoom control container
+    const zoomContainer = zoomControl.getContainer();
+    if (zoomContainer) {
+      zoomContainer.className += ' hidden lg:block';
+    }
 
       // Set initial view to Bangalore center - only use this for first load
       map.setView(currentView.center, currentView.zoom);
-      mapRef.current = map;
+    mapRef.current = map;
 
       // Add tile layer with error handling
       const tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
@@ -290,34 +290,34 @@ export default function MapComponent({
         }
       });
 
-      const markerCluster = L.markerClusterGroup({
-        maxClusterRadius: getClusterRadius,
-        spiderfyOnMaxZoom: true,
-        showCoverageOnHover: true,
-        zoomToBoundsOnClick: true,
-        animate: true,
-        animateAddingMarkers: true,
-        disableClusteringAtZoom: 17,
-        iconCreateFunction: (cluster) => {
-          const count = cluster.getChildCount();
-          const html = ReactDOMServer.renderToString(
-            <ClusterMarker count={count} />
-          );
-          const size = Math.min(60 + Math.log2(count) * 10, 100);
-          return L.divIcon({
-            html: html,
-            className: 'leaflet-marker-custom',
-            iconSize: L.point(size, Math.max(40, size * 0.6))
-          });
-        }
-      });
+    const markerCluster = L.markerClusterGroup({
+      maxClusterRadius: getClusterRadius,
+      spiderfyOnMaxZoom: true,
+      showCoverageOnHover: true,
+      zoomToBoundsOnClick: true,
+      animate: true,
+      animateAddingMarkers: true,
+      disableClusteringAtZoom: 17,
+      iconCreateFunction: (cluster) => {
+        const count = cluster.getChildCount();
+        const html = ReactDOMServer.renderToString(
+          <ClusterMarker count={count} />
+        );
+        const size = Math.min(60 + Math.log2(count) * 10, 100);
+        return L.divIcon({
+          html: html,
+          className: 'leaflet-marker-custom',
+          iconSize: L.point(size, Math.max(40, size * 0.6))
+        });
+      }
+    });
 
-      map.addLayer(markerCluster);
-      markerClusterRef.current = markerCluster;
-      
+    map.addLayer(markerCluster);
+    markerClusterRef.current = markerCluster;
+    
       // Only call onMapReady once during initialization
-      if (onMapReady) {
-        onMapReady((lat: number, lon: number) => {
+    if (onMapReady) {
+      onMapReady((lat: number, lon: number) => {
           if (mapRef.current) {
             console.log('Setting map view to:', lat, lon);
             mapRef.current.once('moveend', () => {
@@ -349,7 +349,7 @@ export default function MapComponent({
     return () => {
       if (mapRef.current) {
         mapRef.current.remove();
-        mapRef.current = null;
+      mapRef.current = null;
       }
       markerClusterRef.current = null;
       markersRef.current = [];
@@ -531,7 +531,7 @@ export default function MapComponent({
       `}</style>
       <div className="relative h-full w-full">
         <div id="map" className="h-full w-full"></div>
-        
+
         {/* Property List */}
         <PropertyList 
           properties={visibleProperties}
