@@ -41,7 +41,7 @@ export function PropertyCard({ property, onClose }: PropertyCardProps) {
 
   return (
     <Card className="gap-2 fixed lg:left-[460px] lg:top-20 pt-0 lg:w-[240px] lg:h-[calc(100vh-7rem)] 
-                     fixed bottom-0 left-0 right-0 h-[60vh] 
+                     fixed bottom-0 left-0 right-0 h-screen 
                      shadow-lg z-[9999] bg-white overflow-auto scrollbar-hide">
       <style jsx global>{`
         .scrollbar-hide {
@@ -52,7 +52,7 @@ export function PropertyCard({ property, onClose }: PropertyCardProps) {
           display: none;  /* Chrome, Safari and Opera */
         }
       `}</style>
-      <div className="sticky top-0 right-0 p-2 flex justify-end bg-white z-10">
+      <div className="sticky top-0 right-0 p-2 flex justify-end bg-white z-[11]">
         <Button
           variant="ghost"
           size="icon"
@@ -64,44 +64,48 @@ export function PropertyCard({ property, onClose }: PropertyCardProps) {
       </div>
 
       {/* Video Section */}
-      <CardHeader className="relative px-4 py-0 gap-0">
-        <CardTitle className="text-base font-bold mb-1 lg:text-sm md:text-lg">
-          <div className="relative h-full aspect-video">
-            <iframe
-              src={`https://www.youtube.com/embed/${property.youtube_id}?autoplay=1&mute=0`}
-              className="absolute inset-0 w-full h-full"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
-          </div>
+      <div className="sticky top-10 bg-white z-[11] px-4 py-0">
+        <div className={`relative h-full ${property.video_type === 'S' ? 'aspect-[9/16]' : 'aspect-video'}`}>
+          <iframe
+            src={`https://www.youtube.com/embed/${property.youtube_id}?autoplay=1&mute=0`}
+            className="absolute inset-0 w-full h-full rounded-lg"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope;"
+            allowFullScreen
+          />
+        </div>
+      </div>
+
+      <CardHeader className="relative px-4 py-0 gap-0 mt-4">
+        <CardTitle className="text-base mb-1 lg:text-sm md:text-lg pt-2">
+          
 
           {Number(property.price_overall) === 0 ? (
             <>
-              <span className="font-regular">Price on request</span>
-              <span className="font-regular"> ({property.property_type})</span>
+              <span className="font-regular font-bold ">Price on request</span>
+              <span className="!font-regular "> ({property.property_type})</span>
             </>
           ) : (
             <>
               {formatPriceInCrores(property.price_overall)} <span className="font-regular">({property.property_type})</span>
             </>
           )}
-        </CardTitle>
+        </CardTitle >
 
-        <div className="flex flex-col gap-1">
-          <p className="text-xs text-muted-foreground">
+        <div className="flex flex-col ">
+          <p className="text-xs text-base text-muted-foreground">
             {property.sqft} sqft · {property.cleaned_location}
           </p>
          
         </div>
       </CardHeader>
       
-      <CardContent className="space-y-3 px- mt-2">
+      <CardContent className="space-y-3 px-4 mt-2">
         {/* Main Details */}
         <div className="space-y-3">
-          <div>
+          {/* <div>
             <h3 className="text-xs font-medium text-muted-foreground">Area</h3>
             <p className="text-xs">{property.sqft} sqft</p>
-          </div>
+          </div> */}
 
           <div>
             <h3 className="text-xs font-medium text-muted-foreground">Property Type</h3>
