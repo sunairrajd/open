@@ -69,7 +69,7 @@ export function PropertyCard({ property, onClose }: PropertyCardProps) {
       </div>
 
       {/* Video Section */}
-      <div className="sticky top-[calc(0.5rem+env(safe-area-inset-top))] bg-white z-[11] px-4 py-0">
+      <div className="bg-white px-4 py-0">
         <div className={`relative h-full ${property.video_type === 'S' ? 'aspect-[9/16]' : 'aspect-video'}`}>
           <iframe
             src={`https://www.youtube.com/embed/${property.youtube_id}?autoplay=1&mute=0`}

@@ -118,7 +118,8 @@ export function PropertyList({ properties, onPropertyClick, setMapView }: Proper
                 ${isExpanded ? 'h-[calc(100dvh-4rem)]' : 'h-[80px]'} 
                 lg:h-[calc(100dvh-7rem)]
                 bg-white lg:bg-white/80 backdrop-blur-sm shadow-lg z-[9998]
-                transition-all duration-300 ease-in-out`}
+                transition-all duration-300 ease-in-out
+                overscroll-none`}
     >
       <CardContent 
         className="p-4 pt-0 h-full overflow-hidden"
@@ -151,14 +152,32 @@ export function PropertyList({ properties, onPropertyClick, setMapView }: Proper
             </Button>
           </div>
         </div>
-        <div ref={scrollAreaRef} className={`${isExpanded ? 'h-[calc(100dvh-10rem)]' : 'h-[calc(40dvh-6rem)]'} lg:h-[calc(100dvh-10rem)] overflow-auto pb-safe scrollbar-hide`}>
+        <div 
+          ref={scrollAreaRef} 
+          className={`${isExpanded ? 'h-[calc(100dvh-10rem)]' : 'h-[calc(40dvh-6rem)]'} 
+                      lg:h-[calc(100dvh-10rem)] overflow-auto pb-safe scrollbar-hide
+                      overscroll-none`}
+          style={{ WebkitOverflowScrolling: 'touch' }}
+        >
           <style jsx global>{`
             .scrollbar-hide {
               -ms-overflow-style: none;  /* IE and Edge */
               scrollbar-width: none;  /* Firefox */
+              -webkit-overflow-scrolling: touch;  /* Enable momentum scrolling on iOS */
             }
             .scrollbar-hide::-webkit-scrollbar {
               display: none;  /* Chrome, Safari and Opera */
+            }
+            html {
+              height: -webkit-fill-available;
+            }
+            body {
+              min-height: -webkit-fill-available;
+              overscroll-behavior-y: none;
+            }
+            .overscroll-none {
+              overscroll-behavior-y: none;
+              -webkit-overflow-scrolling: touch;
             }
           `}</style>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 auto-rows-max px-4 lg:px-0">
