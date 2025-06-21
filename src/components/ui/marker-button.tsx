@@ -52,12 +52,12 @@ export function MarkerButton({
         flex flex-col items-center 
         ${className}
       `}>
-        <div className="relative w-[32px] h-[auto]">
+        <div className="relative w-[30px] h-[auto]">
           <Image
             src={getMarkerImage()}
             alt={getMarkerAlt()}
-            width={32}
-            height={32}
+            width={30}
+            height={30}
             priority
             className="object-contain"
           />

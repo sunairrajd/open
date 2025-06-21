@@ -40,8 +40,9 @@ export default function RootLayout({
       </head>
       <body className={`${geist.className} min-h-[100dvh]`}>
         <Analytics />
-        <SpeedInsights />
+     
         {children}
+        <SpeedInsights />
       </body>
     </html>
   );
