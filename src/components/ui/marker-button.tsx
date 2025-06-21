@@ -74,13 +74,13 @@ export function MarkerButton({
               bg-white px-[1px] rounded-[2px]
             ">· · ·</span>
           ) : (
-            <div className="flex items-center justify-center gap-[1px]">
+            <div className="flex bg-white items-center justify-center px-[2px] ">
               <span className="
                 text-primary text-[12px] font-semibold font-sans
-                bg-white px-[2px] rounded-[2px]
+                bg-white  rounded-[2px]
               ">₹</span>
               <div className="
-                bg-white px-[2px] flex items-center rounded-[2px]
+                flex items-center rounded-[2px]
               ">
                 <span className="
                   text-primary text-[12px] font-medium font-sans

@@ -150,7 +150,7 @@ export function PropertyList({ properties, onPropertyClick, setMapView }: Proper
     <Card 
       className={`fixed lg:right-4 lg:top-20 lg:left-8  rounded-t-2xl lg:rounded-t-2xl rounded-b-none bottom-0 lg:border-0 lg:rounded-b-2xl lg:w-[480px] lg:bottom-8   pb-0 
                 fixed border-t-1 border-x-0 left-0 right-0 
-                ${isExpanded ? 'h-[calc(100dvh-4rem)] pb-0 lg:pb-6 ' : 'h-[114px]'} 
+                ${isExpanded ? 'h-[calc(100dvh-4rem)] pb-0 lg:pb-6 ' : 'h-[94px]'} 
                 ${isDesktopExpanded ? 'lg:w-[480px] lg:h-[calc(100dvh-7rem)] lg:pb-6 lg:h-auto' : 'lg:w-[300px] lg:h-[90px] pb-6'}
                 bg-white lg:bg-white/80 backdrop-blur-sm shadow-lg z-[9998]
                 transition-[height,width,padding,transform] duration-500 ease-in-out
