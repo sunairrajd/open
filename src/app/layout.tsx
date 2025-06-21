@@ -3,6 +3,7 @@ import { Geist, Lexend } from "next/font/google";
 import "./globals.css";
 
 import { Analytics } from "@vercel/analytics/react"
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 const geist = Geist({
   subsets: ['latin'],
@@ -39,8 +40,11 @@ export default function RootLayout({
       </head>
       <body className={`${geist.className} min-h-[100dvh]`}>
         <Analytics />
+        <SpeedInsights />
         {children}
       </body>
     </html>
   );
 }
+
+
