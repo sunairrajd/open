@@ -143,8 +143,9 @@ export default function MapComponent({
       if (activeFilters) {
         console.log('Applying filters to API request:', activeFilters);
         
-        if (activeFilters.propertyCategory) {
-          let propertyType = activeFilters.propertyCategory;
+        if (activeFilters.propertyCategories.length > 0) {
+          // Get the first selected category since our API only supports one at a time
+          let propertyType = activeFilters.propertyCategories[0];
           if (propertyType === 'independent-house') {
             propertyType = 'Independent house';
           } else if (propertyType === 'plot-land') {
@@ -153,11 +154,7 @@ export default function MapComponent({
           params.append('propertyType', propertyType);
         }
 
-        if (activeFilters.propertyType) {
-          const typology = activeFilters.propertyType.toUpperCase();
-          params.append('typology', typology);
-        }
-
+        // Remove the propertyType check since we don't have this in FilterState
         if (activeFilters.priceRange && 
             (activeFilters.priceRange.min > 0 || activeFilters.priceRange.max < 90000000)) {
           params.append('priceMin', activeFilters.priceRange.min.toString());
@@ -383,8 +380,9 @@ export default function MapComponent({
           if (activeFilters) {
             console.log('Applying filters to API request:', activeFilters);
             
-            if (activeFilters.propertyCategory) {
-              let propertyType = activeFilters.propertyCategory;
+            if (activeFilters.propertyCategories.length > 0) {
+              // Get the first selected category since our API only supports one at a time
+              let propertyType = activeFilters.propertyCategories[0];
               if (propertyType === 'independent-house') {
                 propertyType = 'Independenthouse';
               } else if (propertyType === 'plot-land') {
@@ -393,11 +391,7 @@ export default function MapComponent({
               params.append('propertyType', propertyType);
             }
 
-            if (activeFilters.propertyType) {
-              const typology = activeFilters.propertyType.toUpperCase();
-              params.append('typology', typology);
-            }
-
+            // Remove the propertyType check since we don't have this in FilterState
             if (activeFilters.priceRange && 
                 (activeFilters.priceRange.min > 0 || activeFilters.priceRange.max < 90000000)) {
               params.append('priceMin', activeFilters.priceRange.min.toString());
