@@ -15,6 +15,7 @@ interface PropertyListProps {
 }
 
 const formatPriceInCrores = (price: string) => {
+  if (price === '0' || price === '0.00' || !price) return '· · ·';
   const crores = (Number(price) / 10000000).toFixed(2);
   return `₹${crores}Cr`;
 };
@@ -70,6 +71,38 @@ const formatTypology = (typology: string | null | undefined): string => {
   }
 };
 
+const formatPropertyCount = (count: number): string => {
+  if (count <= 20) return count.toString();
+  if (count <= 40) return "20+";
+  if (count <= 60) return "40+";
+  if (count <= 80) return "60+";
+  if (count <= 100) return "80+";
+  if (count <= 150) return "100+";
+  if (count <= 200) return "150+";
+  if (count <= 300) return "200+";
+  if (count <= 400) return "300+";
+  if (count <= 500) return "400+";
+  
+  // For counts between 500 and 100000, show increments of 100
+  if (count <= 100000) {
+    const hundreds = Math.floor(count / 100) * 100;
+    if (hundreds === count) return count.toString();
+    return `${hundreds}+`;
+  }
+  
+  return "100000+";
+};
+
+const formatPropertyType = (type: string): string => {
+  switch(type) {
+    case 'I': return 'Ind. house';
+    case 'F': return 'Flat';
+    case 'L': return 'Land';
+    case 'V': return 'Villa';
+    default: return type;
+  }
+};
+
 export function PropertyList({ properties, onPropertyClick, setMapView }: PropertyListProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -113,9 +146,9 @@ export function PropertyList({ properties, onPropertyClick, setMapView }: Proper
 
   return (
     <Card 
-      className={`fixed lg:right-4 lg:top-20 lg:left-8 lg:rounded-xl rounded-t-lg rounded-b-none lg:w-[420px] lg:bottom-4 lg:h-auto 
+      className={`fixed lg:right-4 lg:top-20 lg:left-8  rounded-t-2xl lg:rounded-t-2xl rounded-b-none lg:rounded-b-2xl lg:w-[420px] lg:bottom-4   pb-0 lg:pb-6 lg:h-auto 
                 fixed bottom-0 left-0 right-0 
-                ${isExpanded ? 'h-[calc(100dvh-4rem)]' : 'h-[80px]'} 
+                ${isExpanded ? 'h-[calc(100dvh-4rem)] pb-0 lg:pb-6 ' : 'h-[110px]'} 
                 lg:h-[calc(100dvh-7rem)]
                 bg-white lg:bg-white/80 backdrop-blur-sm shadow-lg z-[9998]
                 transition-all duration-300 ease-in-out
@@ -127,9 +160,9 @@ export function PropertyList({ properties, onPropertyClick, setMapView }: Proper
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        <div ref={headerRef} className="flex justify-between items-center mb-4">
+        <div ref={headerRef} className="flex justify-between items-center mb-4 px-4 lg:px-0">
           <div className="flex items-center justify-between w-full">
-            <h2 className="lg:text-sm md:text-lg font-semibold">{properties.length} properties found</h2>
+            <h2 className="lg:text-sm md:text-lg font-semibold">{formatPropertyCount(properties.length)} properties found</h2>
             <Button
               variant="ghost"
               size="sm"
@@ -187,9 +220,13 @@ export function PropertyList({ properties, onPropertyClick, setMapView }: Proper
                 className="flex flex-col rounded-xl hover:bg-accent/10 cursor-pointer transition-colors overflow-hidden w-full lg:w-[184px] mx-auto"
                 onClick={() => handlePropertyClick(property)}
               >
-                {/* Thumbnail - 16:9 ratio */}
-                <div className="relative w-full lg:w-[184px] aspect-[9/16] rounded-lg overflow-hidden">
-                  <div className="absolute top-2 left-2 z-10">
+                {/* Thumbnail */}
+                <div className={`relative w-full lg:w-[184px] ${
+                  property.video_type === 'F' 
+                    ? 'lg:aspect-[9/16] aspect-video' 
+                    : 'aspect-[9/16]'
+                } rounded-lg overflow-hidden`}>
+                  <div className="absolute top-2 right-2 z-10">
                     <span className={`px-1 py-1 text-[10px] rounded-md font-medium backdrop-blur-sm ${
                       formatTimeAgo(property.upload_date).includes('New')
                         ? 'bg-white text-primary'
@@ -230,12 +267,16 @@ export function PropertyList({ properties, onPropertyClick, setMapView }: Proper
                 {/* Property Info */}
                 <div className="px-1 py-2 flex-1">
                   <div className="flex justify-between items-center">
-                    <p className="text-base text-sm"><span className="font-semibold">
-                      {formatPriceInCrores(property.price_overall)}</span> <span className="font-regular text-sm">({property.property_type})</span>
+                    <p className="flex justify-between items-center w-full">
+                      <span className="font-semibold text-sm">
+                        {formatPriceInCrores(property.price_overall)}
+                      </span>
+                      <span className="font-regular text-sm text-muted-foreground">
+                        {formatPropertyType(property.property_type)}
+                      </span>
                     </p>
-                  
                   </div>
-                  <p className="text-base text-xs">
+                  <p className="text-base text-xs mt-1">
                       {formatTypology(property.typology)}
                     </p>
                   <p className="text-xs text-base font-regular text-muted-foreground">

@@ -528,9 +528,12 @@ export default function MapComponent({
         .leaflet-marker-icon {
           transition: all 0.3s ease;
         }
+        #map {
+         
+        }
       `}</style>
       <div className="relative h-full w-full">
-        <div id="map" className="h-full w-full"></div>
+        <div id="map" className="h-full w-full border border-gray-200 rounded-lg overflow-hidden"></div>
 
         {/* Property List */}
         <PropertyList 
