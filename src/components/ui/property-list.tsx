@@ -147,7 +147,7 @@ export function PropertyList({ properties, onPropertyClick, setMapView }: Proper
 
   return (
     <Card 
-      className={`fixed lg:right-4 lg:top-20 lg:left-8  rounded-t-2xl lg:rounded-t-2xl rounded-b-none lg:rounded-b-2xl lg:w-[420px] lg:bottom-4   pb-0 
+      className={`fixed lg:right-4 lg:top-20 lg:left-8  rounded-t-2xl lg:rounded-t-2xl rounded-b-none lg:rounded-b-2xl lg:w-[480px] lg:bottom-4   pb-0 
                 fixed bottom-0 left-0 right-0 
                 ${isExpanded ? 'h-[calc(100dvh-4rem)] pb-0 lg:pb-6 ' : 'h-[114px]'} 
                 ${isDesktopExpanded ? 'lg:h-[calc(100dvh-7rem)] lg:pb-6 lg:h-auto' : 'lg:h-[90px] pb-6'}
@@ -156,13 +156,13 @@ export function PropertyList({ properties, onPropertyClick, setMapView }: Proper
                 overscroll-none`}
     >
       <CardContent 
-        className={`pt-0 h-full overflow-hidden ${isDesktopExpanded ? 'px-4 pb-4' : 'px-4 pb-0'}
+        className={`pt-0 h-full overflow-hidden ${isDesktopExpanded ? 'px-7 pb-4' : 'px-4 pb-0'}
                    transition-[padding,opacity] duration-500 ease-in-out`} 
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        <div ref={headerRef} className="flex justify-between items-center mb-4 px-2 lg:px-0">
+        <div ref={headerRef} className="flex justify-between items-center mb-4 px-2 lg:px-2">
           <div className="flex items-center justify-between w-full">
             <h2 className="lg:text-sm md:text-lg font-semibold transition-transform duration-500 ease-in-out">{formatPropertyCount(properties.length)} properties found</h2>
             <div className={`${isDesktopExpanded ? 'flex items-center gap-2' : 'flex items-center gap-2'}`}>
@@ -236,7 +236,7 @@ export function PropertyList({ properties, onPropertyClick, setMapView }: Proper
               -webkit-overflow-scrolling: touch;
             }
           `}</style>
-          <div className={`grid grid-cols-1 lg:grid-cols-2 gap-4 auto-rows-max px-2 lg:px-0 
+          <div className={`grid grid-cols-1 lg:grid-cols-2 gap-4 auto-rows-max px-0 lg:px-0 
                           ${!isDesktopExpanded && 'lg:hidden'}
                           transition-[opacity,transform] duration-500 ease-in-out
                           ${isDesktopExpanded ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'}`}>
