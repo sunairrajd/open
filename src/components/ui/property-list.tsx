@@ -107,6 +107,7 @@ export function PropertyList({ properties, onPropertyClick, setMapView }: Proper
   const [isExpanded, setIsExpanded] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [startY, setStartY] = useState(0);
+  const [isDesktopExpanded, setIsDesktopExpanded] = useState(true);
   const headerRef = useRef<HTMLDivElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
@@ -146,49 +147,71 @@ export function PropertyList({ properties, onPropertyClick, setMapView }: Proper
 
   return (
     <Card 
-      className={`fixed lg:right-4 lg:top-20 lg:left-8  rounded-t-2xl lg:rounded-t-2xl rounded-b-none lg:rounded-b-2xl lg:w-[420px] lg:bottom-4   pb-0 lg:pb-6 lg:h-auto 
+      className={`fixed lg:right-4 lg:top-20 lg:left-8  rounded-t-2xl lg:rounded-t-2xl rounded-b-none lg:rounded-b-2xl lg:w-[420px] lg:bottom-4   pb-0 
                 fixed bottom-0 left-0 right-0 
-                ${isExpanded ? 'h-[calc(100dvh-4rem)] pb-0 lg:pb-6 ' : 'h-[110px]'} 
-                lg:h-[calc(100dvh-7rem)]
+                ${isExpanded ? 'h-[calc(100dvh-4rem)] pb-0 lg:pb-6 ' : 'h-[114px]'} 
+                ${isDesktopExpanded ? 'lg:h-[calc(100dvh-7rem)] lg:pb-6 lg:h-auto' : 'lg:h-[90px] pb-6'}
                 bg-white lg:bg-white/80 backdrop-blur-sm shadow-lg z-[9998]
-                transition-all duration-300 ease-in-out
+                transition-[height,padding,transform] duration-500 ease-in-out
                 overscroll-none`}
     >
       <CardContent 
-        className="p-4 pt-0 h-full overflow-hidden"
+        className={`pt-0 h-full overflow-hidden ${isDesktopExpanded ? 'px-4 pb-4' : 'px-4 pb-0'}
+                   transition-[padding,opacity] duration-500 ease-in-out`} 
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        <div ref={headerRef} className="flex justify-between items-center mb-4 px-0 lg:px-0">
+        <div ref={headerRef} className="flex justify-between items-center mb-4 px-2 lg:px-0">
           <div className="flex items-center justify-between w-full">
-            <h2 className="lg:text-sm md:text-lg font-semibold">{formatPropertyCount(properties.length)} properties found</h2>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="lg:hidden p-0 hover:bg-transparent"
-              onClick={() => setIsExpanded(!isExpanded)}
-            >
-              {isExpanded ? (
-                <ChevronDown 
-                  className="text-primary !w-8 !h-8" 
-                  style={{ width: '4px', height: '4px' }}
-                  strokeWidth={2.5} 
-                />
-              ) : (
-                <ChevronUp
-                  className="text-primary !w-8 !h-8" 
-                  style={{ width: '4px', height: '4px' }}
-                  strokeWidth={2.5} 
-                />
-              )}
-            </Button>
+            <h2 className="lg:text-sm md:text-lg font-semibold transition-transform duration-500 ease-in-out">{formatPropertyCount(properties.length)} properties found</h2>
+            <div className={`${isDesktopExpanded ? 'flex items-center gap-2' : 'flex items-center gap-2'}`}>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="hidden lg:flex items-center justify-center p-0 hover:bg-transparent transition-transform duration-500"
+                onClick={() => setIsDesktopExpanded(!isDesktopExpanded)}
+              >
+                {isDesktopExpanded ? (
+                  <ChevronDown 
+                    className="text-primary !w-6 !h-6 transition-transform duration-500" 
+                    strokeWidth={2} 
+                  />
+                ) : (
+                  <ChevronUp
+                    className="text-primary !w-6 !h-6 transition-transform duration-500" 
+                    strokeWidth={2} 
+                  />
+                )}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="lg:hidden p-0 hover:bg-transparent transition-transform duration-500"
+                onClick={() => setIsExpanded(!isExpanded)}
+              >
+                {isExpanded ? (
+                  <ChevronDown 
+                    className="text-primary !w-8 !h-8 transition-transform duration-500" 
+                    style={{ width: '4px', height: '4px' }}
+                    strokeWidth={2} 
+                  />
+                ) : (
+                  <ChevronUp
+                    className="text-primary !w-8 !h-8 transition-transform duration-500" 
+                    style={{ width: '4px', height: '4px' }}
+                    strokeWidth={2} 
+                  />
+                )}
+              </Button>
+            </div>
           </div>
         </div>
         <div 
           ref={scrollAreaRef} 
           className={`${isExpanded ? 'h-[calc(100dvh-10rem)]' : 'h-[calc(40dvh-6rem)]'} 
-                      lg:h-[calc(100dvh-10rem)] overflow-auto pb-safe scrollbar-hide
+                      lg:h-[${isDesktopExpanded ? 'calc(100dvh-10rem)' : '0px'}] overflow-auto pb-safe scrollbar-hide
+                      transition-[height,opacity] duration-500 ease-in-out
                       overscroll-none`}
           style={{ WebkitOverflowScrolling: 'touch' }}
         >
@@ -213,7 +236,10 @@ export function PropertyList({ properties, onPropertyClick, setMapView }: Proper
               -webkit-overflow-scrolling: touch;
             }
           `}</style>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 auto-rows-max px-2 lg:px-0">
+          <div className={`grid grid-cols-1 lg:grid-cols-2 gap-4 auto-rows-max px-2 lg:px-0 
+                          ${!isDesktopExpanded && 'lg:hidden'}
+                          transition-[opacity,transform] duration-500 ease-in-out
+                          ${isDesktopExpanded ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'}`}>
             {properties.map((property, index) => (
               <div
                 key={`${property.cleaned_location}-${index}`}
@@ -240,7 +266,7 @@ export function PropertyList({ properties, onPropertyClick, setMapView }: Proper
                       src={`https://img.youtube.com/vi/${property.youtube_id}/hqdefault.jpg`}
                       alt={`${property.property_type} at ${property.cleaned_location}`}
                       fill
-                      className="object-cover bg-gray-100"
+                      className="object-cover bg-gray-100 scale-[1.02]"
                       sizes="(max-width: 768px) 100vw, 184px"
                       onError={(e) => {
                         // If maxresdefault fails, try hqdefault
