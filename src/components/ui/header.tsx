@@ -40,7 +40,7 @@ export function Header({ onLocationSelect, onFiltersChange }: HeaderProps) {
         </div>
 
         {/* Search Bar and Filters */}
-        <div className="flex items-center gap-2 max-w-sm w-full">
+        <div className="flex items-center gap-2 max-w-lg w-full">
           <SearchLocation onLocationSelect={onLocationSelect} />
           <FilterSheet onFiltersChange={onFiltersChange} />
         </div>

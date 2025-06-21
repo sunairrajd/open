@@ -215,10 +215,13 @@ export function PropertyList({ properties, onPropertyClick, setMapView }: Proper
         </div>
         <div 
           ref={scrollAreaRef} 
-          className={`${isExpanded ? 'h-[calc(100dvh-10rem)]' : 'h-[calc(40dvh-6rem)]'} 
-                      lg:h-[${isDesktopExpanded ? 'calc(100dvh-10rem)' : '0px'}] overflow-auto pb-safe scrollbar-hide
-                      transition-[height,opacity] duration-500 ease-in-out
-                      overscroll-none`}
+          className={`
+            ${isExpanded ? 'max-lg:h-[calc(100dvh-10rem)]' : 'max-lg:h-[calc(40dvh-6rem)]'}
+            ${isDesktopExpanded ? 'lg:h-[calc(100dvh-10rem)]' : 'lg:h-[0px]'}
+            overflow-auto pb-safe scrollbar-hide
+            transition-[height,opacity] duration-500 ease-in-out
+            overscroll-none
+          `}
           style={{ WebkitOverflowScrolling: 'touch' }}
         >
           <style jsx global>{`

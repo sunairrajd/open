@@ -16,8 +16,7 @@ import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 
 export interface FilterState {
-  propertyCategory: string;
-  propertyType: string;
+  propertyCategories: string[];
   priceRange: {
     min: number;
     max: number;
@@ -29,16 +28,11 @@ export interface FilterState {
 }
 
 const PROPERTY_CATEGORIES = [
+  { value: 'all', label: 'All' },
   { value: 'apartment', label: 'Apartment' },
   { value: 'independent-house', label: 'Independent House' },
+  { value: 'villa', label: 'Villa' },
   { value: 'plot-land', label: 'Plot/Land' },
-];
-
-const BHK_TYPES = [
-  { value: '1bhk', label: '1 BHK' },
-  { value: '2bhk', label: '2 BHK' },
-  { value: '3bhk', label: '3 BHK' },
-  { value: '4bhk', label: '4 BHK' },
 ];
 
 const MAX_PRICE = 90000000; // 9 Crore
@@ -53,8 +47,7 @@ export function FilterSheet({ onFiltersChange }: FilterSheetProps) {
   const isDesktop = useMediaQuery("(min-width: 768px)");
   
   const [filters, setFilters] = useState<FilterState>({
-    propertyCategory: '',
-    propertyType: '',
+    propertyCategories: [],
     priceRange: {
       min: 0,
       max: MAX_PRICE,
@@ -68,11 +61,8 @@ export function FilterSheet({ onFiltersChange }: FilterSheetProps) {
   const getActiveFilterCount = () => {
     let count = 0;
     
-    // Count property category if selected
-    if (filters.propertyCategory) count++;
-    
-    // Count property type if selected
-    if (filters.propertyType) count++;
+    // Count property categories if selected
+    if (filters.propertyCategories.length > 0) count++;
     
     // Count price range if modified
     if (filters.priceRange.min > 0 || filters.priceRange.max < MAX_PRICE) count++;
@@ -81,6 +71,39 @@ export function FilterSheet({ onFiltersChange }: FilterSheetProps) {
     if (filters.areaRange.min > 0 || filters.areaRange.max < MAX_AREA) count++;
     
     return count;
+  };
+
+  const handlePropertyCategoryClick = (categoryValue: string) => {
+    setFilters(prev => {
+      // If "All" is clicked
+      if (categoryValue === 'all') {
+        return {
+          ...prev,
+          propertyCategories: [] // Empty array means all categories
+        };
+      }
+
+      let newCategories: string[];
+      if (prev.propertyCategories.includes(categoryValue)) {
+        // Remove the category if it's already selected
+        newCategories = prev.propertyCategories.filter(c => c !== categoryValue);
+      } else {
+        // Add the category
+        newCategories = [...prev.propertyCategories, categoryValue];
+      }
+
+      return {
+        ...prev,
+        propertyCategories: newCategories
+      };
+    });
+  };
+
+  const isPropertyCategorySelected = (categoryValue: string) => {
+    if (categoryValue === 'all') {
+      return filters.propertyCategories.length === 0;
+    }
+    return filters.propertyCategories.includes(categoryValue);
   };
 
   const handleFiltersChange = useCallback((newFilters: FilterState) => {
@@ -169,13 +192,9 @@ export function FilterSheet({ onFiltersChange }: FilterSheetProps) {
                   {PROPERTY_CATEGORIES.map((category) => (
                     <button
                       key={category.value}
-                      onClick={() => setFilters(prev => ({ 
-                        ...prev, 
-                        propertyCategory: category.value,
-                        propertyType: '' // Reset BHK type when changing category
-                      }))}
+                      onClick={() => handlePropertyCategoryClick(category.value)}
                       className={`px-4 py-2 text-xs rounded-md border transition-colors ${
-                        filters.propertyCategory === category.value
+                        isPropertyCategorySelected(category.value)
                           ? 'bg-primary text-primary-foreground'
                           : 'bg-background hover:bg-accent'
                       }`}
@@ -185,28 +204,6 @@ export function FilterSheet({ onFiltersChange }: FilterSheetProps) {
                   ))}
                 </div>
               </div>
-
-              {/* BHK Type - Only show for Apartment and Independent House */}
-              {(filters.propertyCategory === 'apartment' || filters.propertyCategory === 'independent-house') && (
-                <div>
-                  <h3 className="text-sm font-medium mb-3">BHK Type</h3>
-                  <div className="grid grid-cols-2 gap-2">
-                    {BHK_TYPES.map((type) => (
-                      <button
-                        key={type.value}
-                        onClick={() => setFilters(prev => ({ ...prev, propertyType: type.value }))}
-                        className={`px-4 py-2 text-xs rounded-md border transition-colors ${
-                          filters.propertyType === type.value
-                            ? 'bg-primary text-primary-foreground'
-                            : 'bg-background hover:bg-accent'
-                        }`}
-                      >
-                        {type.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
 
               {/* Price Range */}
               <div>
@@ -277,8 +274,7 @@ export function FilterSheet({ onFiltersChange }: FilterSheetProps) {
               variant="outline"
               onClick={() => {
                 const defaultFilters = {
-                  propertyCategory: '',
-                  propertyType: '',
+                  propertyCategories: [],
                   priceRange: { min: 0, max: MAX_PRICE },
                   areaRange: { min: 0, max: MAX_AREA },
                 };

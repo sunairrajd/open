@@ -529,11 +529,11 @@ export default function MapComponent({
           transition: all 0.3s ease;
         }
         #map {
-         
+          border-radius: 0.5rem;
         }
       `}</style>
-      <div className="relative h-full w-full">
-        <div id="map" className="h-full w-full border border-gray-200 rounded-lg overflow-hidden"></div>
+      <div className="relative h-full w-full rounded-lg">
+        <div id="map" className="h-full w-full  rounded-lg border border-gray-200 overflow-hidden" style={{borderRadius: '16px'}}></div>
 
         {/* Property List */}
         <PropertyList 
