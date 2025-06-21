@@ -90,8 +90,8 @@ export default function MapComponent({
   const getClusterRadius = (zoom: number) => {
     // At max zoom (19), radius should be very small
     // At min zoom (10), radius should be larger
-    const maxRadius = 80;  // Maximum clustering radius
-    const minRadius = 10;  // Minimum clustering radius
+    const maxRadius = 8;  // Maximum clustering radius
+    const minRadius = 8;  // Minimum clustering radius
     const maxZoom = 19;
     const minZoom = 10;
     
@@ -222,7 +222,7 @@ export default function MapComponent({
     mapRef.current = map;
 
       // Add tile layer with error handling
-      const tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+      const tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
         maxZoom: 19,
         attribution: '© OpenStreetMap contributors, © CARTO'
       });
@@ -463,6 +463,7 @@ export default function MapComponent({
               <MarkerButton 
                 price={formattedPrice.replace('₹', '')} 
                 lastUpdated={property.upload_date}
+                propertyType={property.property_type}
               />
             ),
             iconSize: [60, 24],
