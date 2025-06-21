@@ -36,11 +36,21 @@ const formatTypology = (typology: string | null | undefined): string => {
   }
 };
 
+const formatPropertyType = (type: string): string => {
+  switch(type) {
+    case 'I': return 'Ind. house';
+    case 'F': return 'Flat';
+    case 'L': return 'Land';
+    case 'V': return 'Villa';
+    default: return type;
+  }
+};
+
 export function PropertyCard({ property, onClose }: PropertyCardProps) {
   const [showContact, setShowContact] = useState(false);
 
   return (
-    <Card className="gap-2 fixed lg:left-[460px] lg:top-20 pt-0 lg:w-[240px] lg:h-[calc(100vh-7rem)] 
+    <Card className="gap-2 fixed lg:left-[520px] lg:top-20 pt-0 lg:w-[240px] lg:h-[calc(100vh-7rem)] 
                      fixed bottom-0 left-0 right-0 h-[100dvh] 
                      shadow-lg z-[9999] bg-white overflow-auto scrollbar-hide lg:pt-0 pt-safe">
       <style jsx global>{`
@@ -86,19 +96,17 @@ export function PropertyCard({ property, onClose }: PropertyCardProps) {
 
       <CardHeader className="relative px-4 py-0 gap-0 mt-4">
         <CardTitle className="text-base mb-1 lg:text-sm md:text-lg pt-2">
-          
-
           {Number(property.price_overall) === 0 ? (
             <>
               <span className="font-regular font-bold ">Price on request</span>
-              <span className="!font-regular "> ({property.property_type})</span>
+              <span className="!font-regular "> ({formatPropertyType(property.property_type)})</span>
             </>
           ) : (
             <>
-              {formatPriceInCrores(property.price_overall)} <span className="font-regular">({property.property_type})</span>
+              {formatPriceInCrores(property.price_overall)} <span className="font-regular">({formatPropertyType(property.property_type)})</span>
             </>
           )}
-        </CardTitle >
+        </CardTitle>
 
         <div className="flex flex-col ">
           <p className="text-xs text-base text-muted-foreground">
@@ -115,63 +123,104 @@ export function PropertyCard({ property, onClose }: PropertyCardProps) {
             <h3 className="text-xs font-medium text-muted-foreground">Area</h3>
             <p className="text-xs">{property.sqft} sqft</p>
           </div> */}
-
+{property.property_type !== 'L' && (
           <div>
-            <h3 className="text-xs font-medium text-muted-foreground">Property Type</h3>
+            <h3 className="text-xs font-medium text-muted-foreground mb-0">Property Type</h3>
             {formatTypology(property.typology) && (
             <p className="text-xs ">
               {formatTypology(property.typology)}
             </p>
           )}
           </div>
+)}
 
           
 
           <div>
-            <h3 className="text-xs font-medium text-muted-foreground">Price per sqft</h3>
-            <p className="text-xs">{formatPricePerSqft(property.price_overall, property.sqft)}</p>
+            <h3 className="text-xs font-medium text-muted-foreground mb-0">Price per sqft</h3>
+            <p className="text-xs">
+              {Number(property.price_overall) === 0 || !property.sqft 
+                ? <span className="text-muted-foreground">Not disclosed</span>
+                : formatPricePerSqft(property.price_overall, property.sqft)}
+            </p>
           </div>
-          <div>
-            <h3 className="text-xs font-medium text-muted-foreground">Possession</h3>
-            <p className="text-xs">{property.possession_date === 'NA' ? 'Ready to move' : property.possession_date}</p>
-          </div>
-          <div>
-            <h3 className="text-xs font-medium text-muted-foreground">Property Age</h3>
-            <p className="text-xs">{property.property_age === 'NA' ? 'N/A' : `${property.property_age} years`}</p>
-          </div>
+          {property.property_type !== 'L' && (
+            <>
+              <div>
+                <h3 className="text-xs font-medium text-muted-foreground mb-0">Possession</h3>
+                <p className="text-xs">
+                  {property.possession_date === 'NA' || !property.possession_date 
+                    ? <span className="text-muted-foreground">Not disclosed</span>
+                    : property.possession_date}
+                </p>
+              </div>
+              <div>
+                <h3 className="text-xs font-medium text-muted-foreground mb-0">Property Age</h3>
+                <p className="text-xs">
+                  {property.property_age === 'NA' || !property.property_age 
+                    ? <span className="text-muted-foreground">Not disclosed</span>
+                    : `${property.property_age} years`}
+                </p>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Dimensions */}
         <div>
-          <h3 className="text-xs font-medium text-muted-foreground mb-1">Dimensions</h3>
+          <h3 className="text-xs font-medium text-muted-foreground mb-0">Dimensions</h3>
           <div className="">
-            <p className="text-xs">{property.dimensions}</p>
+            <p className="text-xs">
+              {!property.dimensions || property.dimensions === 'NA' 
+                ? <span className="text-muted-foreground">Not disclosed</span>
+                : property.dimensions}
+            </p>
           </div>
         </div>
 
         {/* Additional Details */}
         <div className="space-y-3">
+          {property.property_type !== 'L' && (
+            <div>
+              <h3 className="text-xs font-medium text-muted-foreground mb-0">Car Parking</h3>
+              <p className="text-xs">
+                {!property.car_park || property.car_park === 'NA' 
+                  ? <span className="text-muted-foreground">Not disclosed</span>
+                  : property.car_park}
+              </p>
+            </div>
+          )}
+          {property.property_type !== 'L' && (
+            <div>
+              <h3 className="text-xs font-medium text-muted-foreground mb-0">Floor</h3>
+              <p className="text-xs">
+                {!property.floor || property.floor === 'NA' 
+                  ? <span className="text-muted-foreground">Not disclosed</span>
+                  : property.floor}
+              </p>
+            </div>
+          )}
           <div>
-            <h3 className="text-xs font-medium text-muted-foreground">Car Parking</h3>
-            <p className="text-xs">{property.car_park || 'N/A'}</p>
+            <h3 className="text-xs font-medium text-muted-foreground mb-0">Direction</h3>
+            <p className="text-xs">
+              {!property.direction || property.direction === 'NA' 
+                ? <span className="text-muted-foreground">Not disclosed</span>
+                : property.direction}
+            </p>
           </div>
           <div>
-            <h3 className="text-xs font-medium text-muted-foreground">Floor</h3>
-            <p className="text-xs">{property.floor || 'N/A'}</p>
-          </div>
-          <div>
-            <h3 className="text-xs font-medium text-muted-foreground">Direction</h3>
-            <p className="text-xs">{property.direction}</p>
-          </div>
-          <div>
-            <h3 className="text-xs font-medium text-muted-foreground">Road Width</h3>
-            <p className="text-xs">{property.road_width}</p>
+            <h3 className="text-xs font-medium text-muted-foreground mb-0">Road Width</h3>
+            <p className="text-xs">
+              {!property.road_width || property.road_width === 'NA' 
+                ? <span className="text-muted-foreground">Not disclosed</span>
+                : property.road_width}
+            </p>
           </div>
         </div>
 
         {/* Amenities */}
         <div>
-          <h3 className="text-xs font-medium text-muted-foreground mb-1">Amenities</h3>
+          <h3 className="text-xs font-medium text-muted-foreground mb-0">Amenities</h3>
           <div className="flex flex-wrap gap-1">
             {property.amenities && property.amenities !== 'NA' ? (
               property.amenities.split(', ').map((amenity) => (
@@ -180,35 +229,35 @@ export function PropertyCard({ property, onClose }: PropertyCardProps) {
                 </span>
               ))
             ) : (
-              <span className="text-xs text-muted-foreground">No amenities listed</span>
+              <span className="text-xs text-muted-foreground">Not disclosed</span>
             )}
           </div>
         </div>
 
         {/* Connectivity */}
         <div>
-          <h3 className="text-xs font-medium text-muted-foreground mb-1">Connectivity</h3>
+          <h3 className="text-xs font-medium text-muted-foreground mb-0">Connectivity</h3>
           <div className="space-y-1">
             {property.connectivity && property.connectivity !== 'NA' ? (
               property.connectivity.split(', ').map((item, index) => (
                 <p key={index} className="text-xs">{item}</p>
               ))
             ) : (
-              <p className="text-xs text-muted-foreground">No connectivity information available</p>
+              <p className="text-xs text-muted-foreground">Not disclosed</p>
             )}
           </div>
         </div>
 
         {/* Nearby */}
         <div>
-          <h3 className="text-xs font-medium text-muted-foreground mb-1">Nearby</h3>
+          <h3 className="text-xs font-medium text-muted-foreground mb-0">Nearby</h3>
           <div className="space-y-1">
             {property.nearby && property.nearby !== 'NA' ? (
               property.nearby.split(', ').map((item, index) => (
                 <p key={index} className="text-xs">{item}</p>
               ))
             ) : (
-              <p className="text-xs text-muted-foreground">No nearby information available</p>
+              <p className="text-xs text-muted-foreground">Not disclosed</p>
             )}
           </div>
         </div>

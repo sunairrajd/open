@@ -36,7 +36,7 @@ export function MarkerButton({ price, lastUpdated: uploadDate, className = '' }:
       ${className}
     `}>
       {isPriceZero ? (
-        <span className="text-[#084DCB] text-[11px] font-normal font-sans">📞</span>
+        <span className="text-[#084DCB] text-[11px] font-bold font-sans">· · ·</span>
       ) : (
         <>
           <span className="text-[#084DCB] text-[11px] font-normal font-sans">₹</span>

@@ -7,10 +7,11 @@ import { ChevronDown, ChevronUp  } from "lucide-react";
 import Image from "next/image";
 import { formatDistanceToNow } from 'date-fns';
 import { useState, useRef } from 'react';
+import { ArrowLeftFromLine, ArrowRightToLine } from "lucide-react";
 
 interface PropertyListProps {
   properties: Property[];
-  onPropertyClick: (property: Property) => void;
+  onPropertyClick: (property: Property | null) => void;
   setMapView?: (lat: number, lon: number) => void;
 }
 
@@ -147,39 +148,44 @@ export function PropertyList({ properties, onPropertyClick, setMapView }: Proper
 
   return (
     <Card 
-      className={`fixed lg:right-4 lg:top-20 lg:left-8  rounded-t-2xl lg:rounded-t-2xl rounded-b-none lg:rounded-b-2xl lg:w-[480px] lg:bottom-4   pb-0 
-                fixed bottom-0 left-0 right-0 
+      className={`fixed lg:right-4 lg:top-20 lg:left-8  rounded-t-2xl lg:rounded-t-2xl rounded-b-none bottom-0 lg:border-0 lg:rounded-b-2xl lg:w-[480px] lg:bottom-8   pb-0 
+                fixed border-t-1 border-x-0 left-0 right-0 
                 ${isExpanded ? 'h-[calc(100dvh-4rem)] pb-0 lg:pb-6 ' : 'h-[114px]'} 
-                ${isDesktopExpanded ? 'lg:h-[calc(100dvh-7rem)] lg:pb-6 lg:h-auto' : 'lg:h-[90px] pb-6'}
+                ${isDesktopExpanded ? 'lg:w-[480px] lg:h-[calc(100dvh-7rem)] lg:pb-6 lg:h-auto' : 'lg:w-[300px] lg:h-[90px] pb-6'}
                 bg-white lg:bg-white/80 backdrop-blur-sm shadow-lg z-[9998]
-                transition-[height,padding,transform] duration-500 ease-in-out
+                transition-[height,width,padding,transform] duration-500 ease-in-out
                 overscroll-none`}
     >
       <CardContent 
-        className={`pt-0 h-full overflow-hidden ${isDesktopExpanded ? 'px-7 pb-4' : 'px-4 pb-0'}
+        className={`pt-0 h-full overflow-hidden ${isDesktopExpanded ? 'px-4 pb-4' : 'px-4 pb-0'}
                    transition-[padding,opacity] duration-500 ease-in-out`} 
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        <div ref={headerRef} className="flex justify-between items-center mb-4 px-2 lg:px-2">
+        <div ref={headerRef} className="flex justify-between items-center mb-4 px-0 lg:px-4">
           <div className="flex items-center justify-between w-full">
             <h2 className="lg:text-sm md:text-lg font-semibold transition-transform duration-500 ease-in-out">{formatPropertyCount(properties.length)} properties found</h2>
             <div className={`${isDesktopExpanded ? 'flex items-center gap-2' : 'flex items-center gap-2'}`}>
               <Button
                 variant="ghost"
                 size="sm"
-                className="hidden lg:flex items-center justify-center p-0 hover:bg-transparent transition-transform duration-500"
-                onClick={() => setIsDesktopExpanded(!isDesktopExpanded)}
+                className="hidden lg:flex items-center justify-center p-0 hover:bg-transparent transition-transform duration-500 cursor-pointer"
+                onClick={() => {
+                  setIsDesktopExpanded(!isDesktopExpanded);
+                  if (isDesktopExpanded) {
+                    onPropertyClick(null);
+                  }
+                }}
               >
                 {isDesktopExpanded ? (
-                  <ChevronDown 
-                    className="text-primary !w-6 !h-6 transition-transform duration-500" 
+                  <ArrowLeftFromLine
+                    className="text-primary !w-5 !h-5 transition-transform duration-500" 
                     strokeWidth={2} 
                   />
                 ) : (
-                  <ChevronUp
-                    className="text-primary !w-6 !h-6 transition-transform duration-500" 
+                  <ArrowRightToLine
+                    className="text-primary !w-5 !h-5 transition-transform duration-500" 
                     strokeWidth={2} 
                   />
                 )}
@@ -187,7 +193,7 @@ export function PropertyList({ properties, onPropertyClick, setMapView }: Proper
               <Button
                 variant="ghost"
                 size="sm"
-                className="lg:hidden p-0 hover:bg-transparent transition-transform duration-500"
+                className="lg:hidden p-0 hover:bg-transparent transition-transform duration-500 cursor-pointer"
                 onClick={() => setIsExpanded(!isExpanded)}
               >
                 {isExpanded ? (
@@ -236,7 +242,7 @@ export function PropertyList({ properties, onPropertyClick, setMapView }: Proper
               -webkit-overflow-scrolling: touch;
             }
           `}</style>
-          <div className={`grid grid-cols-1 lg:grid-cols-2 gap-4 auto-rows-max px-0 lg:px-0 
+          <div className={`grid grid-cols-1 lg:grid-cols-2 gap-4 auto-rows-max px-0 lg:px-2
                           ${!isDesktopExpanded && 'lg:hidden'}
                           transition-[opacity,transform] duration-500 ease-in-out
                           ${isDesktopExpanded ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'}`}>
