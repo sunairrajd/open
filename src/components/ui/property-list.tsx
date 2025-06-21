@@ -160,7 +160,7 @@ export function PropertyList({ properties, onPropertyClick, setMapView }: Proper
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        <div ref={headerRef} className="flex justify-between items-center mb-4 px-4 lg:px-0">
+        <div ref={headerRef} className="flex justify-between items-center mb-4 px-0 lg:px-0">
           <div className="flex items-center justify-between w-full">
             <h2 className="lg:text-sm md:text-lg font-semibold">{formatPropertyCount(properties.length)} properties found</h2>
             <Button
@@ -213,7 +213,7 @@ export function PropertyList({ properties, onPropertyClick, setMapView }: Proper
               -webkit-overflow-scrolling: touch;
             }
           `}</style>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 auto-rows-max px-4 lg:px-0">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 auto-rows-max px-0 lg:px-0">
             {properties.map((property, index) => (
               <div
                 key={`${property.cleaned_location}-${index}`}
@@ -240,8 +240,7 @@ export function PropertyList({ properties, onPropertyClick, setMapView }: Proper
                       src={`https://img.youtube.com/vi/${property.youtube_id}/hqdefault.jpg`}
                       alt={`${property.property_type} at ${property.cleaned_location}`}
                       fill
-                      // unoptimized={true}
-                      className="object-cover"
+                      className="object-cover bg-gray-100"
                       sizes="(max-width: 768px) 100vw, 184px"
                       onError={(e) => {
                         // If maxresdefault fails, try hqdefault
@@ -258,7 +257,7 @@ export function PropertyList({ properties, onPropertyClick, setMapView }: Proper
                       }}
                     />
                   ) : (
-                    <div className="absolute inset-0 bg-accent flex items-center justify-center">
+                    <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">
                       <p className="text-sm text-muted-foreground">No image available</p>
                     </div>
                   )}
@@ -268,21 +267,21 @@ export function PropertyList({ properties, onPropertyClick, setMapView }: Proper
                 <div className="px-1 py-2 flex-1">
                   <div className="flex justify-between items-center">
                     <p className="flex justify-between items-center w-full">
-                      <span className="font-semibold text-sm">
+                      <span className="font-semibold  text-base lg:text-sm">
                         {formatPriceInCrores(property.price_overall)}
                       </span>
-                      <span className="font-regular text-sm text-muted-foreground">
+                      <span className="font-regular text-base lg:text-sm text-muted-foreground">
                         {formatPropertyType(property.property_type)}
                       </span>
                     </p>
                   </div>
-                  <p className="text-base text-xs mt-1">
+                  <p className="lg:text-xs text-sm mt-1">
                       {formatTypology(property.typology)}
                     </p>
-                  <p className="text-xs text-base font-regular text-muted-foreground">
+                  <p className="lg:text-xs text-sm text-base font-regular text-muted-foreground">
                     {property.sqft} sqft · {property.cleaned_location}
                   </p>
-                  <p className="text-xs font-regular text-muted-foreground line-clamp-1"></p>
+                  <p className="lg:text-xs text-sm font-regular text-muted-foreground line-clamp-1"></p>
                 </div>
               </div>
             ))}
