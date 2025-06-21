@@ -213,7 +213,7 @@ export function PropertyList({ properties, onPropertyClick, setMapView }: Proper
               -webkit-overflow-scrolling: touch;
             }
           `}</style>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 auto-rows-max px-0 lg:px-0">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 auto-rows-max px-2 lg:px-0">
             {properties.map((property, index) => (
               <div
                 key={`${property.cleaned_location}-${index}`}
