@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 
 export async function GET(request: Request) {
   try {
-    const apiKey = process.env.NEXT_PUBLIC_TABLE_PRIVATE_ID;
+    const apiKey = process.env.NEXT_PRIVATE_TABLE_PRIVATE_ID;
     if (!apiKey) {
       console.error('API key is not configured');
       return NextResponse.json({ error: 'API key is not configured' }, { status: 500 });
