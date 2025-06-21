@@ -71,7 +71,7 @@ export function MarkerButton({
           {isPriceZero ? (
             <span className="
               text-primary text-[12px] font-bold font-sans
-              [-webkit-text-stroke:_2px_white]
+              [-webkit-text-stroke:_0px_white]
               [text-shadow:_0_1px_2px_rgba(0,0,0,0.3)]
             ">· · ·</span>
           ) : (

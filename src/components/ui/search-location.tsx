@@ -47,11 +47,17 @@ export function SearchLocation({ onLocationSelect }: SearchLocationProps) {
     setIsSearching(true);
     try {
       const response = await fetch(
-        `/api/places?input=${encodeURIComponent(query)}&sessiontoken=${sessionToken.current}`
+        `/api/places/autocomplete?input=${encodeURIComponent(query)}&sessiontoken=${sessionToken.current}`
       );
 
       if (!response.ok) {
-        throw new Error('Failed to fetch predictions');
+        const errorData = await response.json();
+        console.error('API Error Response:', {
+          status: response.status,
+          statusText: response.statusText,
+          data: errorData
+        });
+        throw new Error(`Failed to fetch predictions: ${response.status} ${errorData.error || response.statusText}`);
       }
 
       const data = await response.json();
@@ -60,9 +66,14 @@ export function SearchLocation({ onLocationSelect }: SearchLocationProps) {
       if (data.predictions) {
         setResults(data.predictions);
         setOpen(data.predictions.length > 0);
+      } else if (data.error) {
+        console.error('API returned error:', data.error);
+        throw new Error(`API Error: ${data.error}`);
       }
     } catch (error) {
       console.error('Error fetching predictions:', error);
+      setResults([]);
+      setOpen(false);
     } finally {
       setIsSearching(false);
     }
@@ -74,12 +85,15 @@ export function SearchLocation({ onLocationSelect }: SearchLocationProps) {
     setResults([]); // Clear results immediately
 
     try {
-      const response = await fetch('/api/places', {
+      const response = await fetch('/api/places/details', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ placeId: result.place_id }),
+        body: JSON.stringify({ 
+          placeId: result.place_id,
+          sessionToken: sessionToken.current 
+        }),
       });
 
       if (!response.ok) {
@@ -99,6 +113,11 @@ export function SearchLocation({ onLocationSelect }: SearchLocationProps) {
       }
     } catch (error) {
       console.error('Error getting place details:', error);
+      // Show the error to the user
+      updateSearch('Error fetching location details', true);
+      setTimeout(() => {
+        updateSearch('', true);
+      }, 2000);
     }
   };
 
