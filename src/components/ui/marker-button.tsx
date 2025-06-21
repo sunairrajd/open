@@ -71,29 +71,24 @@ export function MarkerButton({
           {isPriceZero ? (
             <span className="
               text-primary text-[12px] font-bold font-sans
-              [-webkit-text-stroke:_0px_white]
-              [text-shadow:_0_1px_2px_rgba(0,0,0,0.3)]
+              bg-white px-[1px] rounded-[2px]
             ">· · ·</span>
           ) : (
-            <div className="flex items-center justify-center">
+            <div className="flex items-center justify-center gap-[1px]">
               <span className="
                 text-primary text-[12px] font-semibold font-sans
-                [-webkit-text-stroke:_0px_white]
-                [text-shadow:_0_1px_2px_rgba(255,255,255,0.3)]
+                bg-white px-[2px] rounded-[2px]
               ">₹</span>
-              <span className="
-                text-primary text-[12px] font-medium font-sans
-                [-webkit-text-stroke:_0px_white]
-                [text-shadow:_
-                  -1px_-1px_0_#fff,
-                  1px_-1px_0_#fff,
-                  -1px_1px_0_#fff,
-                  1px_1px_0_#fff
-                ]
-              ">{price}</span>
-              {isRecentlyUpdated() && (
-                <span className="text-primary text-[12px] font-normal font-sans ml-[1px]">🔥</span>
-              )}
+              <div className="
+                bg-white px-[2px] flex items-center rounded-[2px]
+              ">
+                <span className="
+                  text-primary text-[12px] font-medium font-sans
+                ">{price}</span>
+                {isRecentlyUpdated() && (
+                  <span className="text-primary text-[12px] font-normal font-sans">🔥</span>
+                )}
+              </div>
             </div>
           )}
         </div>
