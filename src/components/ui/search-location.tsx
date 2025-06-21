@@ -3,11 +3,10 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Input } from "@/components/ui/input";
 import { MagnifyingGlassIcon } from "@radix-ui/react-icons";
-import { Command, CommandGroup, CommandItem } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import Script from 'next/script';
 
-interface SearchResult extends google.maps.places.AutocompletePrediction {}
+// We only need a subset of the Google Places prediction fields
+type SearchResult = Pick<google.maps.places.AutocompletePrediction, 'place_id' | 'structured_formatting'>;
 
 interface SearchLocationProps {
   onLocationSelect: (lat: number, lon: number) => void;
