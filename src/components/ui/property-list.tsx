@@ -150,7 +150,7 @@ export function PropertyList({
                 overscroll-none`}
     >
       <CardContent 
-        className={`pt-0 h-full  ${isDesktopExpanded ? 'px-4 pb-4' : 'px-4 pb-0'}
+        className={`pt-0 h-full overflow-hidden ${isDesktopExpanded ? 'px-4 pb-4' : 'px-4 pb-0'}
                    transition-[padding,opacity] duration-500 ease-in-out`} 
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
@@ -231,10 +231,20 @@ export function PropertyList({
             }
             html {
               height: -webkit-fill-available;
+              min-height: 100vh;
+              min-height: -webkit-fill-available;
+              background-color: white;
             }
             body {
+              min-height: 100vh;
               min-height: -webkit-fill-available;
               overscroll-behavior-y: none;
+              position: fixed;
+              width: 100%;
+              height: 100%;
+            }
+            #__next {
+              height: 100%;
             }
             .overscroll-none {
               overscroll-behavior-y: none;

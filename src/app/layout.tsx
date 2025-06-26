@@ -29,20 +29,18 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: {
+  children: React.ReactNode
+}) {
   return (
-    <html lang="en" className={`${geist.variable} ${lexend.variable} antialiased h-[100dvh]`}>
+    <html lang="en" className="h-full">
       <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
       </head>
-      <body className={`${geist.className} min-h-[100dvh]`}>
-        <Analytics />
-     
-        {children}
-        <SpeedInsights />
+      <body className="h-full overflow-hidden">
+        <main className="h-full">
+          {children}
+        </main>
       </body>
     </html>
   );
