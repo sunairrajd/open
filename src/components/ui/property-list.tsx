@@ -81,29 +81,6 @@ const formatTypology = (typology: string | null | undefined): string => {
   }
 };
 
-const formatPropertyCount = (count: number): string => {
-  // if (count <= 20) return count.toString();
-  // if (count <= 40) return "20+";
-  // if (count <= 60) return "40+";
-  // if (count <= 80) return "60+";
-  // if (count <= 100) return "80+";
-  // if (count <= 150) return "100+";
-  // if (count <= 200) return "150+";
-  // if (count <= 300) return "200+";
-  // if (count <= 400) return "300+";
-  // if (count <= 500) return "400+";
-  return count.toString();
-  
-  // For counts between 500 and 100000, show increments of 100
-  if (count <= 100000) {
-    const hundreds = Math.floor(count / 100) * 100;
-    if (hundreds === count) return count.toString();
-    return `${hundreds}+`;
-  }
-  
-  return "100000+";
-};
-
 const formatPropertyType = (type: string): string => {
   switch(type) {
     case 'I': return 'Ind. house';

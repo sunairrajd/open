@@ -82,7 +82,6 @@ export default function MapComponent({
   const [currentBounds, setCurrentBounds] = useState<MapBounds | null>(null);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [visibleProperties, setVisibleProperties] = useState<Property[]>([]);
-  const [currentPage, setCurrentPage] = useState(1);
   const [pagination, setPagination] = useState<{
     total: number;
     page: number;
@@ -181,7 +180,6 @@ export default function MapComponent({
         page === 1 ? responseData.data : [...prev, ...responseData.data]
       );
       setPagination(responseData.pagination);
-      setCurrentPage(page);
     } catch (error) {
       console.error('Error fetching properties:', error);
     }
@@ -315,7 +313,7 @@ export default function MapComponent({
     } catch (error) {
       console.error('Error initializing map:', error);
     }
-  }, []);
+  }, [currentView.center, currentView.zoom, isMapInitialized, onMapReady]);
 
   // Setup map event listeners after initialization
   useEffect(() => {
@@ -463,7 +461,7 @@ export default function MapComponent({
     return () => {
       isUpdatingRef.current = false;
     };
-  }, [visibleProperties, clearMarkers]);
+  }, [visibleProperties, clearMarkers, currentBounds, isMapInitialized]);
 
   return (
     <>
