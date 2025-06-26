@@ -13,6 +13,15 @@ interface PropertyListProps {
   properties: Property[];
   onPropertyClick: (property: Property | null) => void;
   setMapView?: (lat: number, lon: number) => void;
+  pagination?: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+    prevPage: number | null;
+    nextPage: number | null;
+  } | null;
+  onLoadMore?: () => void;
 }
 
 const formatPriceInCrores = (price: string) => {
@@ -38,7 +47,7 @@ const formatTimeAgo = (date: string) => {
     }
 
     const distance = formatDistanceToNow(parsedDate, { addSuffix: false });
-    console.log('Date:', date, 'Distance:', distance, 'Days diff:', diffInDays);
+    // console.log('Date:', date, 'Distance:', distance, 'Days diff:', diffInDays);
     
     return distance
       .replace(' months', 'mo')
@@ -73,16 +82,17 @@ const formatTypology = (typology: string | null | undefined): string => {
 };
 
 const formatPropertyCount = (count: number): string => {
-  if (count <= 20) return count.toString();
-  if (count <= 40) return "20+";
-  if (count <= 60) return "40+";
-  if (count <= 80) return "60+";
-  if (count <= 100) return "80+";
-  if (count <= 150) return "100+";
-  if (count <= 200) return "150+";
-  if (count <= 300) return "200+";
-  if (count <= 400) return "300+";
-  if (count <= 500) return "400+";
+  // if (count <= 20) return count.toString();
+  // if (count <= 40) return "20+";
+  // if (count <= 60) return "40+";
+  // if (count <= 80) return "60+";
+  // if (count <= 100) return "80+";
+  // if (count <= 150) return "100+";
+  // if (count <= 200) return "150+";
+  // if (count <= 300) return "200+";
+  // if (count <= 400) return "300+";
+  // if (count <= 500) return "400+";
+  return count.toString();
   
   // For counts between 500 and 100000, show increments of 100
   if (count <= 100000) {
@@ -104,7 +114,13 @@ const formatPropertyType = (type: string): string => {
   }
 };
 
-export function PropertyList({ properties, onPropertyClick, setMapView }: PropertyListProps) {
+export function PropertyList({ 
+  properties, 
+  onPropertyClick, 
+  setMapView,
+  pagination,
+  onLoadMore 
+}: PropertyListProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [startY, setStartY] = useState(0);
@@ -165,7 +181,9 @@ export function PropertyList({ properties, onPropertyClick, setMapView }: Proper
       >
         <div ref={headerRef} className="flex justify-between items-center mb-4 px-0 lg:px-4">
           <div className="flex items-center justify-between w-full">
-            <h2 className="lg:text-sm md:text-lg font-semibold transition-transform duration-500 ease-in-out">{formatPropertyCount(properties.length)} properties found</h2>
+            <h2 className="lg:text-sm md:text-lg font-semibold transition-transform duration-500 ease-in-out">
+              {pagination?.total ? `${pagination.total} properties found` : `${properties.length} properties found`}
+            </h2>
             <div className={`${isDesktopExpanded ? 'flex items-center gap-2' : 'flex items-center gap-2'}`}>
               <Button
                 variant="ghost"
@@ -221,6 +239,7 @@ export function PropertyList({ properties, onPropertyClick, setMapView }: Proper
             overflow-auto pb-safe scrollbar-hide
             transition-[height,opacity] duration-500 ease-in-out
             overscroll-none
+            flex flex-col
           `}
           style={{ WebkitOverflowScrolling: 'touch' }}
         >
@@ -245,7 +264,7 @@ export function PropertyList({ properties, onPropertyClick, setMapView }: Proper
               -webkit-overflow-scrolling: touch;
             }
           `}</style>
-          <div className={`grid grid-cols-1 lg:grid-cols-2 gap-4 auto-rows-max px-0 lg:px-2
+          <div className={`grid grid-cols-1 lg:grid-cols-2 gap-4 auto-rows-max px-0 lg:px-2 flex-1
                           ${!isDesktopExpanded && 'lg:hidden'}
                           transition-[opacity,transform] duration-500 ease-in-out
                           ${isDesktopExpanded ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'}`}>
@@ -321,6 +340,25 @@ export function PropertyList({ properties, onPropertyClick, setMapView }: Proper
               </div>
             ))}
           </div>
+
+          {/* Load More Button */}
+          {pagination?.nextPage && properties.length > 0 && (
+            <div className="w-full bg-white/80 backdrop-blur-sm  pt-4 lg:pt-2 pb-6 px-0 lg:px-4 mt-0 mb-8 flex-shrink-0">
+              <Button
+                variant="outline"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onLoadMore?.();
+                }}
+                className="w-full bg-white hover:bg-accent/10 flex items-center justify-center gap-2"
+              >
+                Load more properties
+                {pagination.nextPage < pagination.totalPages && 
+                  ` (${pagination.total - properties.length} remaining)`}
+              </Button>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

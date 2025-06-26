@@ -56,8 +56,8 @@ export function MarkerButton({
           <Image
             src={getMarkerImage()}
             alt={getMarkerAlt()}
-            width={30}
-            height={30}
+            width={28}
+            height={28}
             priority
             className="object-contain"
           />
@@ -71,19 +71,23 @@ export function MarkerButton({
           {isPriceZero ? (
             <span className="
               text-primary text-[12px] font-bold font-sans
-              bg-white px-[1px] rounded-[2px]
+               px-[1px] rounded-[2px]
             ">· · ·</span>
           ) : (
-            <div className="flex bg-white items-center justify-center px-[2px] ">
+            <div className="flex items-center justify-center px-[2px] [-webkit-text-stroke:3px_#FFFFFF]">
               <span className="
                 text-primary text-[12px] font-semibold font-sans
-                bg-white  rounded-[2px]
+                rounded-[2px]
+              
+                [paint-order:stroke_fill]
               ">₹</span>
               <div className="
                 flex items-center rounded-[2px]
+                [-webkit-text-stroke:3px_#FFFFFF]
               ">
                 <span className="
-                  text-primary text-[12px] font-medium font-sans
+                  text-xs text-[11px] font-medium font-sans
+                  [paint-order:stroke_fill]
                 ">{price}</span>
                 {isRecentlyUpdated() && (
                   <span className="text-primary text-[12px] font-normal font-sans">🔥</span>

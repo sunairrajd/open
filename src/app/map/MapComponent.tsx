@@ -9,10 +9,11 @@ import 'leaflet.markercluster';
 import type { Property } from './types';
 import { MarkerButton } from '@/components/ui/marker-button';
 import ReactDOMServer from 'react-dom/server';
-import { ClusterMarker } from '@/components/ui/cluster-marker';
 import { PropertyCard } from '@/components/ui/property-card';
 import { PropertyList } from '@/components/ui/property-list';
 import type { FilterState } from '@/components/ui/filter-sheet';
+
+const PAGE_SIZE = 20;
 
 // Fix Leaflet's default icon path issues with proper typing
 interface IconDefault extends L.Icon {
@@ -67,164 +68,217 @@ export default function MapComponent({
 }: MapComponentProps) {
   const mapRef = useRef<L.Map | null>(null);
   const markersRef = useRef<L.Marker[]>([]);
-  const markerClusterRef = useRef<L.MarkerClusterGroup | null>(null);
+  const tileLayerRef = useRef<L.TileLayer | null>(null);
   const isUpdatingRef = useRef(false);
+  const lastFetchParamsRef = useRef<string>('');
+  const [isMapInitialized, setIsMapInitialized] = useState(false);
   const [currentView, setCurrentView] = useState<{
     center: [number, number];
     zoom: number;
   }>({
     center: [12.9716, 77.5946], // Initial Bangalore center
-    zoom: 13
+    zoom: 10
   });
   const [currentBounds, setCurrentBounds] = useState<MapBounds | null>(null);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [visibleProperties, setVisibleProperties] = useState<Property[]>([]);
-  const [isMapInitialized, setIsMapInitialized] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pagination, setPagination] = useState<{
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+    prevPage: number | null;
+    nextPage: number | null;
+  } | null>(null);
 
   // Add debug logging for activeFilters changes
   useEffect(() => {
     console.log('activeFilters changed:', activeFilters);
   }, [activeFilters]);
 
-  // Function to calculate cluster radius based on zoom level
-  const getClusterRadius = (zoom: number) => {
-    // At max zoom (19), radius should be very small
-    // At min zoom (10), radius should be larger
-    const maxRadius = 8;  // Maximum clustering radius
-    const minRadius = 8;  // Minimum clustering radius
-    const maxZoom = 19;
-    const minZoom = 10;
-    
-    // Linear interpolation between max and min radius based on zoom
-    const radius = maxRadius - ((zoom - minZoom) * (maxRadius - minRadius) / (maxZoom - minZoom));
-    return Math.max(minRadius, Math.min(maxRadius, radius));
-  };
-
   // Function to clear existing markers
   const clearMarkers = useCallback(() => {
-    if (markerClusterRef.current) {
-      markerClusterRef.current.clearLayers();
-    }
+    // Remove markers directly from the map
+    markersRef.current.forEach(marker => {
+      marker.remove();
+    });
     markersRef.current = [];
   }, []);
 
-  // Define handleMoveEnd first
+  // Function to create URLSearchParams for property fetching
+  const createFetchParams = useCallback((bounds: MapBounds, page: number = 1) => {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: PAGE_SIZE.toString(),
+      latitudeMin: bounds.south.toString(),
+      latitudeMax: bounds.north.toString(),
+      longitudeMin: bounds.west.toString(),
+      longitudeMax: bounds.east.toString(),
+    });
+
+    if (activeFilters) {
+      if (activeFilters.propertyCategories.length > 0) {
+        let propertyType = activeFilters.propertyCategories[0];
+        if (propertyType === 'independent-house') {
+          propertyType = 'Independent house';
+        } else if (propertyType === 'plot-land') {
+          propertyType = 'Plot/Land';
+        }
+        params.set('propertyType', propertyType);
+      }
+
+      if (activeFilters.priceRange && 
+          (activeFilters.priceRange.min > 0 || activeFilters.priceRange.max < 90000000)) {
+        params.set('priceMin', activeFilters.priceRange.min.toString());
+        params.set('priceMax', activeFilters.priceRange.max.toString());
+      }
+
+      if (activeFilters.areaRange && 
+          (activeFilters.areaRange.min > 0 || activeFilters.areaRange.max < 10000)) {
+        params.set('sqFeetMin', activeFilters.areaRange.min.toString());
+        params.set('sqFeetMax', activeFilters.areaRange.max.toString());
+      }
+    }
+
+    return params;
+  }, [activeFilters]);
+
+  // Function to fetch properties
+  const fetchProperties = useCallback(async (bounds: MapBounds, page: number = 1, isLoadMore: boolean = false) => {
+    try {
+      const params = createFetchParams(bounds, page);
+      const paramsString = params.toString();
+      
+      // Skip if this is the same request we just made (unless it's a loadMore request)
+      if (!isLoadMore && paramsString === lastFetchParamsRef.current) {
+        console.log('Skipping duplicate API request');
+        return;
+      }
+
+      lastFetchParamsRef.current = paramsString;
+      const apiUrl = `/api/v2/properties?${paramsString}`;
+      console.log('Making API request to:', apiUrl);
+      
+      const response = await fetch(apiUrl);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('API error:', errorData);
+        throw new Error(errorData.error || 'Failed to fetch properties');
+      }
+
+      const responseData = await response.json();
+      console.log('Received data:', responseData);
+
+      if (!Array.isArray(responseData.data)) {
+        console.error('Invalid data format received:', responseData);
+        throw new Error('Invalid data format received from API');
+      }
+
+      // Update properties based on page number
+      setVisibleProperties(prev => 
+        page === 1 ? responseData.data : [...prev, ...responseData.data]
+      );
+      setPagination(responseData.pagination);
+      setCurrentPage(page);
+    } catch (error) {
+      console.error('Error fetching properties:', error);
+    }
+  }, [createFetchParams]);
+
+  // Define handleMoveEnd
   const handleMoveEnd = useCallback(() => {
     if (!mapRef.current || isUpdatingRef.current) return;
     
     try {
       console.log('handleMoveEnd called');
-      // Always get fresh bounds from the latest map state
       const map = mapRef.current;
+      
+      // Update the view state
+      const center = map.getCenter();
+      const zoom = map.getZoom();
+      setCurrentView({
+        center: [center.lat, center.lng],
+        zoom: zoom
+      });
+
       const mapBounds = map.getBounds();
-    const newBounds = {
+      const newBounds = {
         north: mapBounds.getNorth(),
         south: mapBounds.getSouth(),
         east: mapBounds.getEast(),
         west: mapBounds.getWest()
       };
-      
-      console.log('New bounds from handleMoveEnd:', newBounds);
-    setCurrentBounds(newBounds);
-    if (onBoundsChange) {
-      onBoundsChange(newBounds);
-    }
-
-      // Fetch properties for the new bounds
-      // Build query parameters using fresh bounds
-      const params = new URLSearchParams({
-        latitudeMin: newBounds.south.toString(),
-        latitudeMax: newBounds.north.toString(),
-        longitudeMin: newBounds.west.toString(),
-        longitudeMax: newBounds.east.toString(),
-      });
-
-      // Add filter parameters if they exist
-      if (activeFilters) {
-        console.log('Applying filters to API request:', activeFilters);
-        
-        if (activeFilters.propertyCategories.length > 0) {
-          // Get the first selected category since our API only supports one at a time
-          let propertyType = activeFilters.propertyCategories[0];
-          if (propertyType === 'independent-house') {
-            propertyType = 'Independent house';
-          } else if (propertyType === 'plot-land') {
-            propertyType = 'Plot/Land';
-          }
-          params.append('propertyType', propertyType);
-        }
-
-        // Remove the propertyType check since we don't have this in FilterState
-        if (activeFilters.priceRange && 
-            (activeFilters.priceRange.min > 0 || activeFilters.priceRange.max < 90000000)) {
-          params.append('priceMin', activeFilters.priceRange.min.toString());
-          params.append('priceMax', activeFilters.priceRange.max.toString());
-        }
-
-        if (activeFilters.areaRange && 
-            (activeFilters.areaRange.min > 0 || activeFilters.areaRange.max < 10000)) {
-          params.append('sqFeetMin', activeFilters.areaRange.min.toString());
-          params.append('sqFeetMax', activeFilters.areaRange.max.toString());
-        }
+    
+      setCurrentBounds(newBounds);
+      if (onBoundsChange) {
+        onBoundsChange(newBounds);
       }
 
-      const apiUrl = `/api/properties?${params.toString()}`;
-      console.log('Making API request to:', apiUrl);
-      
-      fetch(apiUrl)
-        .then(response => {
-          if (!response.ok) {
-            return response.json().then(errorData => {
-              console.error('API error:', errorData);
-              throw new Error(errorData.error || 'Failed to fetch properties');
-            });
-          }
-          return response.json();
-        })
-        .then(data => {
-          console.log('Received data:', data);
-          if (!Array.isArray(data)) {
-            console.error('Invalid data format received:', data);
-            throw new Error('Invalid data format received from API');
-          }
-          setVisibleProperties(data);
-        })
-        .catch(error => {
-          console.error('Error fetching properties:', error);
-        });
+      // Reset to first page when bounds change
+      fetchProperties(newBounds, 1);
     } catch (error) {
       console.error('Error in handleMoveEnd:', error);
     }
-  }, [onBoundsChange, activeFilters]);
+  }, [onBoundsChange, fetchProperties]);
 
-  // Initialize map - separate effect
+  // Add a loadMore function
+  const loadMore = useCallback(() => {
+    if (!currentBounds || !pagination?.nextPage) {
+      console.log('Cannot load more: no bounds or next page');
+      return;
+    }
+
+    console.log('Loading more properties, page:', pagination.nextPage);
+    fetchProperties(currentBounds, pagination.nextPage, true);
+  }, [currentBounds, pagination, fetchProperties]);
+
+  // Effect for filter changes
   useEffect(() => {
-    if (typeof window === 'undefined' || mapRef.current) return;
+    if (!isMapInitialized || !currentBounds) return;
+    fetchProperties(currentBounds, 1);
+  }, [activeFilters, isMapInitialized, currentBounds, fetchProperties]);
 
-    console.log('Initializing map');
+  // Initialize map only once on mount
+  useEffect(() => {
+    if (typeof window === 'undefined' || mapRef.current || isMapInitialized) {
+      return;
+    }
+
+    console.log('Initializing map - first time setup');
+    
     try {
       const map = L.map('map', { 
         zoomControl: false,
-        attributionControl: false
+        attributionControl: false,
+        fadeAnimation: true,
+        zoomAnimation: true,
+        markerZoomAnimation: true,
+        preferCanvas: true
       });
     
-    // Add zoom control with custom class for responsive visibility
-    const zoomControl = L.control.zoom({ position: 'bottomright' });
-    zoomControl.addTo(map);
-    // Add custom class to zoom control container
-    const zoomContainer = zoomControl.getContainer();
-    if (zoomContainer) {
-      zoomContainer.className += ' hidden lg:block';
-    }
+      // Add zoom control with custom class for responsive visibility
+      const zoomControl = L.control.zoom({ position: 'bottomright' });
+      zoomControl.addTo(map);
+      const zoomContainer = zoomControl.getContainer();
+      if (zoomContainer) {
+        zoomContainer.className += ' hidden lg:block';
+      }
 
-      // Set initial view to Bangalore center - only use this for first load
-      map.setView(currentView.center, currentView.zoom);
-    mapRef.current = map;
+      map.setView(currentView.center, currentView.zoom, {
+        animate: false
+      });
+      mapRef.current = map;
 
-      // Add tile layer with error handling
       const tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
         maxZoom: 19,
-        attribution: '© OpenStreetMap contributors, © CARTO'
+        attribution: '© OpenStreetMap contributors, © CARTO',
+        updateWhenIdle: true,
+        updateWhenZooming: false,
+        keepBuffer: 2,
+        maxNativeZoom: 18,
+        tileSize: 256
       });
 
       tileLayer.on('tileerror', (error) => {
@@ -232,272 +286,184 @@ export default function MapComponent({
       });
 
       tileLayer.addTo(map);
+      tileLayerRef.current = tileLayer;
 
-      // Wait for both map and tiles to be ready
-      Promise.all([
-        new Promise(resolve => map.whenReady(resolve)),
-        new Promise(resolve => tileLayer.on('load', resolve))
-      ]).then(() => {
-        console.log('Map and tiles fully loaded');
-        setIsMapInitialized(true);
-        
-        try {
-          const actualBounds = map.getBounds();
-          const bounds = {
-            north: actualBounds.getNorth(),
-            south: actualBounds.getSouth(),
-            east: actualBounds.getEast(),
-            west: actualBounds.getWest()
-          };
-          console.log('Initial map bounds set after view:', bounds);
-          setCurrentBounds(bounds);
-        } catch (error) {
-          console.error('Error getting initial bounds:', error);
-        }
-      });
-
-      // Add event listeners for map movement
-      map.on('moveend', () => {
-        if (!mapRef.current || isUpdatingRef.current) return;
-        
-        try {
-          console.log('Map moved/zoomed');
-          const center = mapRef.current.getCenter();
-          const zoom = mapRef.current.getZoom();
-          console.log('New map position:', { center, zoom });
-
-          // Update the view state
-          setCurrentView({
-            center: [center.lat, center.lng],
-            zoom: zoom
-          });
-
-          isUpdatingRef.current = true; // Set flag before update
-          map.setView([center.lat, center.lng], zoom);
-          mapRef.current = map;
-          isUpdatingRef.current = false; // Reset flag after update
-          
-          // Get fresh bounds from the map after updating ref
-          const bounds = mapRef.current.getBounds();
-          console.log('Fresh bounds after map update-----', bounds);
-          handleMoveEnd();
-        } catch (error) {
-          console.error('Error in moveend handler:', error);
-          isUpdatingRef.current = false; // Make sure to reset flag even if there's an error
-        }
-      });
-
-    const markerCluster = L.markerClusterGroup({
-      maxClusterRadius: getClusterRadius,
-      spiderfyOnMaxZoom: true,
-      showCoverageOnHover: true,
-      zoomToBoundsOnClick: true,
-      animate: true,
-      animateAddingMarkers: true,
-      disableClusteringAtZoom: 17,
-      iconCreateFunction: (cluster) => {
-        const count = cluster.getChildCount();
-        const html = ReactDOMServer.renderToString(
-          <ClusterMarker count={count} />
-        );
-        const size = Math.min(60 + Math.log2(count) * 10, 100);
-        return L.divIcon({
-          html: html,
-          className: 'leaflet-marker-custom',
-          iconSize: L.point(size, Math.max(40, size * 0.6))
-        });
-      }
-    });
-
-    map.addLayer(markerCluster);
-    markerClusterRef.current = markerCluster;
-    
-      // Only call onMapReady once during initialization
-    if (onMapReady) {
-      onMapReady((lat: number, lon: number) => {
+      // Setup map ready callback
+      if (onMapReady) {
+        onMapReady((lat: number, lon: number) => {
           if (mapRef.current) {
-            console.log('Setting map view to:', lat, lon);
-            mapRef.current.once('moveend', () => {
-              // Get fresh bounds after the move is complete
-              const newBounds = mapRef.current?.getBounds();
-              console.log('New bounds after setView:', newBounds);
-              
-              // Update the view state
-              if (mapRef.current) {
-                const center = mapRef.current.getCenter();
-                const zoom = mapRef.current.getZoom();
-                setCurrentView({
-                  center: [center.lat, center.lng],
-                  zoom: zoom
-                });
-              }
-              
-              handleMoveEnd();
+            mapRef.current.setView([lat, lon], 15, { 
+              animate: true, 
+              duration: 1,
+              easeLinearity: 0.25
             });
-            mapRef.current.setView([lat, lon], 15, { animate: true, duration: 1 });
-            console.log('Map set view-----', lat, lon);
           }
         });
       }
+
+      setIsMapInitialized(true);
+
+      const actualBounds = map.getBounds();
+      const bounds = {
+        north: actualBounds.getNorth(),
+        south: actualBounds.getSouth(),
+        east: actualBounds.getEast(),
+        west: actualBounds.getWest()
+      };
+      setCurrentBounds(bounds);
+
     } catch (error) {
       console.error('Error initializing map:', error);
     }
+  }, []);
 
+  // Setup map event listeners after initialization
+  useEffect(() => {
+    if (!mapRef.current || !isMapInitialized) return;
+
+    let moveEndTimeout: NodeJS.Timeout;
+    const map = mapRef.current;
+
+    const onMoveEnd = () => {
+      clearTimeout(moveEndTimeout);
+      moveEndTimeout = setTimeout(handleMoveEnd, 100);
+    };
+
+    map.on('moveend', onMoveEnd);
+
+    return () => {
+      map.off('moveend', onMoveEnd);
+      clearTimeout(moveEndTimeout);
+    };
+  }, [isMapInitialized, handleMoveEnd]);
+
+  // Cleanup on unmount
+  useEffect(() => {
     return () => {
       if (mapRef.current) {
         mapRef.current.remove();
-      mapRef.current = null;
+        mapRef.current = null;
       }
-      markerClusterRef.current = null;
+      if (tileLayerRef.current) {
+        tileLayerRef.current.remove();
+        tileLayerRef.current = null;
+      }
       markersRef.current = [];
-      console.log('MapComponent unmounted');
+      setIsMapInitialized(false);
     };
-  }, [handleMoveEnd, onMapReady]);
+  }, []);
 
-  // Add a new effect to handle filter changes
+  // Add styles for smooth tile transitions
   useEffect(() => {
-    console.log('Filter effect triggered with filters:', activeFilters);
-    if (!isMapInitialized || !mapRef.current) {
-      console.log('Map not ready yet');
-      return;
-    }
-
-    try {
-      const mapBounds = mapRef.current.getBounds();
-      console.log('Current map bounds from filter effect:', mapBounds);
-      
-      // Fetch properties for current bounds with new filters
-      const fetchProperties = async () => {
-        try {
-          const params = new URLSearchParams({
-            latitudeMin: mapBounds.getSouth().toString(),
-            latitudeMax: mapBounds.getNorth().toString(),
-            longitudeMin: mapBounds.getWest().toString(),
-            longitudeMax: mapBounds.getEast().toString(),
-          });
-
-          // Add filter parameters if they exist
-          if (activeFilters) {
-            console.log('Applying filters to API request:', activeFilters);
-            
-            if (activeFilters.propertyCategories.length > 0) {
-              // Get the first selected category since our API only supports one at a time
-              let propertyType = activeFilters.propertyCategories[0];
-              if (propertyType === 'independent-house') {
-                propertyType = 'Independenthouse';
-              } else if (propertyType === 'plot-land') {
-                propertyType = 'Plot';
-              }
-              params.append('propertyType', propertyType);
-            }
-
-            // Remove the propertyType check since we don't have this in FilterState
-            if (activeFilters.priceRange && 
-                (activeFilters.priceRange.min > 0 || activeFilters.priceRange.max < 90000000)) {
-              params.append('priceMin', activeFilters.priceRange.min.toString());
-              params.append('priceMax', activeFilters.priceRange.max.toString());
-            }
-
-            if (activeFilters.areaRange && 
-                (activeFilters.areaRange.min > 0 || activeFilters.areaRange.max < 10000)) {
-              params.append('sqFeetMin', activeFilters.areaRange.min.toString());
-              params.append('sqFeetMax', activeFilters.areaRange.max.toString());
-            }
-          }
-
-          const apiUrl = `/api/properties?${params.toString()}`;
-          console.log('Making API request to:', apiUrl);
-          
-          const response = await fetch(apiUrl);
-          
-          if (!response.ok) {
-            const errorData = await response.json();
-            console.error('API error:', errorData);
-            throw new Error(errorData.error || 'Failed to fetch properties');
-          }
-
-          const data = await response.json();
-          console.log('Received data:', data);
-          
-          if (!Array.isArray(data)) {
-            console.error('Invalid data format received:', data);
-            throw new Error('Invalid data format received from API');
-          }
-
-          setVisibleProperties(data);
-        } catch (error) {
-          console.error('Error fetching properties:', error);
-        }
-      };
-
-      fetchProperties();
-    } catch (error) {
-      console.error('Error in filter effect:', error);
-    }
-  }, [activeFilters, isMapInitialized]);
+    const style = document.createElement('style');
+    style.textContent = `
+      .leaflet-tile-container {
+        will-change: transform;
+        transform-style: preserve-3d;
+        backface-visibility: hidden;
+      }
+      .leaflet-tile {
+        transition: opacity 0.2s ease;
+      }
+      .leaflet-fade-anim .leaflet-tile {
+        will-change: opacity;
+      }
+      .leaflet-zoom-anim .leaflet-zoom-animated {
+        will-change: transform;
+        transition: transform 0.25s cubic-bezier(0.25, 0.1, 0.25, 0.1);
+      }
+    `;
+    document.head.appendChild(style);
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
 
   // Update markers when bounds or filters change
   useEffect(() => {
     if (!mapRef.current || !currentBounds || !isMapInitialized) return;
-    console.log('Updating markers with bounds:', currentBounds);
 
     const updateMarkersWithDelay = () => {
-      clearMarkers();
-      
-      // Create markers for properties
-      const groupedProperties = groupPropertiesByLocation(visibleProperties);
-      
-      groupedProperties.forEach((propsAtLocation, coords) => {
-        const [baseLat, baseLng] = coords.split(',').map(Number);
+      if (isUpdatingRef.current) {
+        console.log('Skipping marker update - update already in progress');
+        return;
+      }
+
+      console.log('Updating markers for properties:', visibleProperties.length);
+      isUpdatingRef.current = true;
+
+      try {
+        clearMarkers();
         
-        propsAtLocation.forEach((property, index) => {
-          const offset = index * 0.00002;
-          const lat = baseLat + offset;
-          const lng = baseLng + offset;
+        const groupedProperties = groupPropertiesByLocation(visibleProperties);
+      
+        groupedProperties.forEach((propsAtLocation, coords) => {
+          const [baseLat, baseLng] = coords.split(',').map(Number);
+          
+          // Calculate spread radius based on zoom level
+          const map = mapRef.current;
+          const zoom = map?.getZoom() || 15;
+          const baseSpread = 0.002 * Math.pow(2, 15 - zoom);
 
-          const formattedPrice = formatPriceInCrores(Number(property.price_overall));
+          propsAtLocation.forEach((property, index) => {
+            // Create a circular spread pattern
+            const angle = (index * (360 / propsAtLocation.length)) * (Math.PI / 180);
+            const latOffset = Math.cos(angle) * baseSpread;
+            const lngOffset = Math.sin(angle) * baseSpread;
+            
+            const lat = baseLat + latOffset;
+            const lng = baseLng + lngOffset;
 
-          const icon = L.divIcon({
-            className: 'leaflet-marker-custom',
-            html: ReactDOMServer.renderToString(
-              <MarkerButton 
-                price={formattedPrice.replace('₹', '')} 
-                lastUpdated={property.upload_date}
-                propertyType={property.property_type}
-              />
-            ),
-            iconSize: [60, 24],
-            iconAnchor: [30, 12]
+            const formattedPrice = formatPriceInCrores(Number(property.price_overall));
+
+            const icon = L.divIcon({
+              className: 'leaflet-marker-custom',
+              html: ReactDOMServer.renderToString(
+                <MarkerButton 
+                  price={formattedPrice.replace('₹', '')} 
+                  lastUpdated={property.upload_date}
+                  propertyType={property.property_type}
+                />
+              ),
+              iconSize: [60, 24],
+              iconAnchor: [30, 12]
+            });
+
+            const marker = L.marker([lat, lng], { icon });
+            marker.on('click', () => setSelectedProperty(property));
+
+            if (propsAtLocation.length > 1) {
+              const popupContent = `
+                <div class="text-center">
+                  <h3 class="font-bold text-lg mb-2">${propsAtLocation.length} Properties</h3>
+                  ${propsAtLocation.map(p => `
+                    <div class="border-b py-2 cursor-pointer hover:bg-accent/10" onclick="window.showProperty(${JSON.stringify(p).replace(/"/g, '&quot;')})">
+                      <div class="font-bold">${formatPriceInCrores(Number(p.price_overall))}</div>
+                      <div>${p.property_type} - ${p.sqft}sqft</div>
+                      <div>${p.cleaned_location}</div>
+                    </div>
+                  `).join('')}
+                </div>
+              `;
+              marker.bindPopup(popupContent);
+            }
+
+            markersRef.current.push(marker);
+            // Add marker directly to the map instead of cluster
+            marker.addTo(mapRef.current!);
           });
-
-          const marker = L.marker([lat, lng], { icon });
-          marker.on('click', () => setSelectedProperty(property));
-
-          if (propsAtLocation.length > 1) {
-            const popupContent = `
-              <div class="text-center">
-                <h3 class="font-bold text-lg mb-2">${propsAtLocation.length} Properties</h3>
-                ${propsAtLocation.map(p => `
-                  <div class="border-b py-2 cursor-pointer hover:bg-accent/10" onclick="window.showProperty(${JSON.stringify(p).replace(/"/g, '&quot;')})">
-                    <div class="font-bold">${formatPriceInCrores(Number(p.price_overall))}</div>
-                    <div>${p.property_type} - ${p.sqft}sqft</div>
-                    <div>${p.cleaned_location}</div>
-                  </div>
-                `).join('')}
-              </div>
-            `;
-            marker.bindPopup(popupContent);
-          }
-
-          markersRef.current.push(marker);
-          markerClusterRef.current?.addLayer(marker);
         });
-      });
+      } finally {
+        isUpdatingRef.current = false;
+      }
     };
 
-    const timeoutId = setTimeout(updateMarkersWithDelay, 100);
-    return () => clearTimeout(timeoutId);
-  }, [visibleProperties, currentBounds, isMapInitialized, clearMarkers]);
+    requestAnimationFrame(updateMarkersWithDelay);
+
+    return () => {
+      isUpdatingRef.current = false;
+    };
+  }, [visibleProperties, clearMarkers]);
 
   return (
     <>
@@ -526,6 +492,23 @@ export default function MapComponent({
         #map {
           border-radius: 0.5rem;
         }
+        /* Add smooth transitions for map tiles and panning */
+        .leaflet-tile {
+          transition: opacity 0.2s ease;
+        }
+        .leaflet-tile-container {
+          will-change: transform;
+          transform-style: preserve-3d;
+          backface-visibility: hidden;
+        }
+        .leaflet-fade-anim .leaflet-tile {
+          will-change: opacity;
+        }
+        .leaflet-zoom-anim .leaflet-zoom-animated {
+          will-change: transform;
+          transform-style: preserve-3d;
+          backface-visibility: hidden;
+        }
       `}</style>
       <div className="relative h-full w-full rounded-lg">
         <div id="map" className="h-full w-full  rounded-lg border border-gray-200 overflow-hidden" style={{borderRadius: '16px'}}></div>
@@ -542,6 +525,8 @@ export default function MapComponent({
               });
             }
           }}
+          pagination={pagination}
+          onLoadMore={loadMore}
         />
 
         {/* Property Card */}
