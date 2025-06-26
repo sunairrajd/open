@@ -150,7 +150,7 @@ export function PropertyList({
                 overscroll-none`}
     >
       <CardContent 
-        className={`pt-0 h-full overflow-hidden ${isDesktopExpanded ? 'px-4 pb-4' : 'px-4 pb-0'}
+        className={`pt-0 h-full  ${isDesktopExpanded ? 'px-4 pb-4' : 'px-4 pb-0'}
                    transition-[padding,opacity] duration-500 ease-in-out`} 
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
