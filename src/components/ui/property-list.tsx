@@ -143,14 +143,13 @@ export function PropertyList({
     <Card 
       className={`fixed lg:right-4 lg:top-20 lg:left-8  rounded-t-2xl lg:rounded-t-2xl rounded-b-none bottom-0 lg:border-0 lg:rounded-b-2xl lg:w-[480px] lg:bottom-8   pb-0 
                 fixed border-t-1 border-x-0 left-0 right-0 
-                ${isExpanded ? 'h-[calc(100dvh-4rem)] pb-0 lg:pb-6 ' : 'h-[94px]'} 
-                ${isDesktopExpanded ? 'lg:w-[480px] lg:h-[calc(100dvh-7rem)] lg:pb-6 lg:h-auto' : 'lg:w-[300px] lg:h-[90px] pb-6'}
+                ${isExpanded ? 'h-[calc(100vh-4rem)] pb-0 lg:pb-6 ' : 'h-[94px]'} 
+                ${isDesktopExpanded ? 'lg:w-[480px] lg:h-[calc(100vh-7rem)] lg:pb-6 lg:h-auto' : 'lg:w-[300px] lg:h-[90px] pb-6'}
                 bg-white lg:bg-white/80 backdrop-blur-sm shadow-lg z-[9998]
-                transition-[height,width,padding,transform] duration-500 ease-in-out
-                overscroll-none`}
+                transition-[height,width,padding,transform] duration-500 ease-in-out`}
     >
       <CardContent 
-        className={`pt-0 h-full overflow-hidden ${isDesktopExpanded ? 'px-4 pb-4' : 'px-4 pb-0'}
+        className={`pt-0 h-full ${isDesktopExpanded ? 'px-4 pb-4' : 'px-4 pb-0'}
                    transition-[padding,opacity] duration-500 ease-in-out`} 
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
@@ -211,46 +210,37 @@ export function PropertyList({
         <div 
           ref={scrollAreaRef} 
           className={`
-            ${isExpanded ? 'max-lg:h-[calc(100dvh-10rem)]' : 'max-lg:h-[calc(40dvh-6rem)]'}
-            ${isDesktopExpanded ? 'lg:h-[calc(100dvh-10rem)]' : 'lg:h-[0px]'}
-            overflow-auto pb-safe scrollbar-hide
-            transition-[height,opacity] duration-500 ease-in-out
-            overscroll-none
+            ${isExpanded ? 'max-lg:h-[calc(100vh-10rem)]' : 'max-lg:h-[calc(40vh-6rem)]'}
+            ${isDesktopExpanded ? 'lg:h-[calc(100vh-10rem)]' : 'lg:h-[0px]'}
+            overflow-y-auto overflow-x-hidden
             flex flex-col
+            -webkit-overflow-scrolling: touch
           `}
-          style={{ WebkitOverflowScrolling: 'touch' }}
         >
           <style jsx global>{`
-            .scrollbar-hide {
-              -ms-overflow-style: none;  /* IE and Edge */
-              scrollbar-width: none;  /* Firefox */
-              -webkit-overflow-scrolling: touch;  /* Enable momentum scrolling on iOS */
+            html, body {
+              height: 100%;
+              overflow-y: auto;
+              -webkit-overflow-scrolling: touch;
+              overscroll-behavior-y: none;
             }
-            .scrollbar-hide::-webkit-scrollbar {
-              display: none;  /* Chrome, Safari and Opera */
-            }
-            html {
-              height: -webkit-fill-available;
-              min-height: 100vh;
-              min-height: -webkit-fill-available;
-              background-color: white;
-            }
+            
             body {
               min-height: 100vh;
-              min-height: -webkit-fill-available;
+              /* Prevent pull-to-refresh but allow overscroll glow */
               overscroll-behavior-y: none;
-              position: fixed;
-              width: 100%;
-              height: 100%;
             }
-            #__next {
-              height: 100%;
+
+            /* Hide scrollbars */
+            .overflow-y-auto {
+              scrollbar-width: none;
+              -ms-overflow-style: none;
             }
-            .overscroll-none {
-              overscroll-behavior-y: none;
-              -webkit-overflow-scrolling: touch;
+            .overflow-y-auto::-webkit-scrollbar {
+              display: none;
             }
           `}</style>
+
           <div className={`grid grid-cols-1 lg:grid-cols-2 gap-4 auto-rows-max px-0 lg:px-2 flex-1
                           ${!isDesktopExpanded && 'lg:hidden'}
                           transition-[opacity,transform] duration-500 ease-in-out
@@ -330,7 +320,7 @@ export function PropertyList({
 
           {/* Load More Button */}
           {pagination?.nextPage && properties.length > 0 && (
-            <div className="w-full bg-white/80 backdrop-blur-sm  pt-4 lg:pt-2 pb-6 px-0 lg:px-4 mt-0 mb-8 flex-shrink-0">
+            <div className="w-full bg-white/80 backdrop-blur-sm pt-4 lg:pt-2 pb-6 px-0 lg:px-4 mt-0 mb-8 flex-shrink-0">
               <Button
                 variant="outline"
                 onClick={(e) => {
