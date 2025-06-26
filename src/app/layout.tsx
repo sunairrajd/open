@@ -33,13 +33,16 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className="h-full">
+    <html lang="en" className="{`${geist.variable} ${lexend.variable}`} h-full">
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
       </head>
       <body className="h-full overflow-hidden">
         <main className="h-full">
+          <Analytics />
+
           {children}
+          <SpeedInsights />
         </main>
       </body>
     </html>
