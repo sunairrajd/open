@@ -12,6 +12,7 @@ import ReactDOMServer from 'react-dom/server';
 import { PropertyCard } from '@/components/ui/property-card';
 import { PropertyList } from '@/components/ui/property-list';
 import type { FilterState } from '@/components/ui/filter-sheet';
+import { formatPriceInCrores } from '@/lib/utils';
 
 const PAGE_SIZE = 20;
 
@@ -39,12 +40,6 @@ interface MapBounds {
   east: number;
   west: number;
 }
-
-// Function to format price in Crores
-const formatPriceInCrores = (price: number) => {
-  const crores = (price / 10000000).toFixed(2);
-  return `₹${crores}Cr`;
-};
 
 // Add this function to group properties by coordinates
 const groupPropertiesByLocation = (properties: Property[]) => {
@@ -159,7 +154,16 @@ export default function MapComponent({
       const apiUrl = `/api/v2/properties?${paramsString}`;
       console.log('Making API request to:', apiUrl);
       
-      const response = await fetch(apiUrl);
+      const apiKey = process.env.NEXT_PUBLIC_CLIENT_API_KEY;
+      if (!apiKey) {
+        throw new Error('API key not configured');
+      }
+      
+      const response = await fetch(apiUrl, {
+        headers: {
+          'x-api-key': apiKey
+        }
+      });
       
       if (!response.ok) {
         const errorData = await response.json();
@@ -412,13 +416,13 @@ export default function MapComponent({
             const lat = baseLat + latOffset;
             const lng = baseLng + lngOffset;
 
-            const formattedPrice = formatPriceInCrores(Number(property.price_overall));
+            const formattedPrice = formatPriceInCrores(Number(property.price_overall), false);
 
             const icon = L.divIcon({
               className: 'leaflet-marker-custom',
               html: ReactDOMServer.renderToString(
                 <MarkerButton 
-                  price={formattedPrice.replace('₹', '')} 
+                  price={formattedPrice} 
                   lastUpdated={property.upload_date}
                   propertyType={property.property_type}
                 />

@@ -67,6 +67,7 @@ export function MarkerButton({
           min-w-[60px]
           px-[4px] py-[0px]
           text-center
+          [margin-top: -2px]
         `}>
           {isPriceZero ? (
             <span className="
@@ -74,16 +75,16 @@ export function MarkerButton({
                px-[1px] rounded-[2px]
             ">· · ·</span>
           ) : (
-            <div className="flex items-center justify-center px-[2px] [-webkit-text-stroke:3px_#FFFFFF]">
+            <div className="flex items-center justify-center px-[2px] [-webkit-text-stroke:5px_#FFFFFF] [margin-top: -2px] [line-height:1]">
               <span className="
-                text-primary text-[12px] font-semibold font-sans
+                text-primary text-[12px] font-mediumfont-sans
                 rounded-[2px]
               
                 [paint-order:stroke_fill]
               ">₹</span>
               <div className="
                 flex items-center rounded-[2px]
-                [-webkit-text-stroke:3px_#FFFFFF]
+                [-webkit-text-stroke:5px_#FFFFFF]
               ">
                 <span className="
                   text-xs text-[11px] font-medium font-sans

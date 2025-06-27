@@ -33,11 +33,11 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={`${geist.variable} ${lexend.variable} antialiased`}>
+    <html lang="en" className={`${geist.variable} ${lexend.variable} antialiased h-full overflow-hidden`}>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
       </head>
-      <body className={`${geist.className} min-h-screen`}>
+      <body className={`${geist.className} h-full `}>
         <Analytics />
         {children}
         <SpeedInsights />

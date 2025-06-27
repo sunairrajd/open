@@ -8,6 +8,7 @@ import Image from "next/image";
 import { formatDistanceToNow } from 'date-fns';
 import { useState, useRef } from 'react';
 import { ArrowLeftFromLine, ArrowRightToLine } from "lucide-react";
+import { formatPriceInCrores } from "@/lib/utils";
 
 interface PropertyListProps {
   properties: Property[];
@@ -23,12 +24,6 @@ interface PropertyListProps {
   } | null;
   onLoadMore?: () => void;
 }
-
-const formatPriceInCrores = (price: string) => {
-  if (price === '0' || price === '0.00' || !price) return '· · ·';
-  const crores = (Number(price) / 10000000).toFixed(2);
-  return `₹${crores}Cr`;
-};
 
 const formatTimeAgo = (date: string) => {
   try {
@@ -141,9 +136,9 @@ export function PropertyList({
 
   return (
     <Card 
-      className={`fixed lg:right-4 lg:top-20 lg:left-8  rounded-t-2xl lg:rounded-t-2xl rounded-b-none bottom-0 lg:border-0 lg:rounded-b-2xl lg:w-[480px] lg:bottom-8   pb-0 
-                fixed border-t-1 border-x-0 left-0 right-0 
-                ${isExpanded ? 'h-[calc(100vh-4rem)] pb-0 lg:pb-6 ' : 'h-[94px]'} 
+      className={`lg:fixed lg:right-4 lg:top-20 lg:left-8 rounded-t-2xl lg:rounded-t-2xl rounded-b-none lg:bottom-8 lg:border-0 lg:rounded-b-2xl lg:w-[480px] pb-0 
+                sticky bottom-0 border-t-1 border-x-0 left-0 right-0 
+                ${isExpanded ? 'h-[calc(100vh-4rem)] pb-0 lg:pb-6' : 'h-[94px]'} 
                 ${isDesktopExpanded ? 'lg:w-[480px] lg:h-[calc(100vh-7rem)] lg:pb-6 lg:h-auto' : 'lg:w-[300px] lg:h-[90px] pb-6'}
                 bg-white lg:bg-white/80 backdrop-blur-sm shadow-lg z-[9998]
                 transition-[height,width,padding,transform] duration-500 ease-in-out`}
@@ -218,23 +213,31 @@ export function PropertyList({
           `}
         >
           <style jsx global>{`
-            html, body {
+            html {
               height: 100%;
-              overflow-y: auto;
-              -webkit-overflow-scrolling: touch;
-              overscroll-behavior-y: none;
+              scroll-behavior: smooth;
             }
             
             body {
-              min-height: 100vh;
-              /* Prevent pull-to-refresh but allow overscroll glow */
-              overscroll-behavior-y: none;
+              min-height: 100%;
+              padding-bottom: 94px; /* Height of collapsed property list */
             }
 
-            /* Hide scrollbars */
+            @media (max-width: 1024px) {
+              .sticky {
+                position: sticky;
+                bottom: 0;
+                left: 0;
+                right: 0;
+              }
+            }
+
+            /* Make only the property list content scrollable */
             .overflow-y-auto {
               scrollbar-width: none;
               -ms-overflow-style: none;
+              -webkit-overflow-scrolling: touch;
+              overscroll-behavior-y: none;
             }
             .overflow-y-auto::-webkit-scrollbar {
               display: none;
@@ -310,7 +313,7 @@ export function PropertyList({
                       {formatTypology(property.typology)}
                     </p>
                   <p className="lg:text-xs text-sm text-base font-regular text-muted-foreground">
-                    {property.sqft} sqft · {property.cleaned_location}
+                    {property.sqft && property.sqft > 0 ? `${property.sqft} sqft · ` : ''}{property.cleaned_location}
                   </p>
                   <p className="lg:text-xs text-sm font-regular text-muted-foreground line-clamp-1"></p>
                 </div>

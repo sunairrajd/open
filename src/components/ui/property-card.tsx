@@ -10,16 +10,12 @@ import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 import type { Property } from "@/app/map/types";
 import { useState } from "react";
+import { formatPriceInCrores } from "@/lib/utils";
 
 interface PropertyCardProps {
   property: Property;
   onClose: () => void;
 }
-
-const formatPriceInCrores = (price: string) => {
-  const crores = (Number(price) / 10000000).toFixed(2);
-  return `₹${crores}Cr`;
-};
 
 const formatPricePerSqft = (price: string, area: number) => {
   return `₹${Math.round(Number(price) / area).toLocaleString('en-IN')}/sqft`;
@@ -110,7 +106,7 @@ export function PropertyCard({ property, onClose }: PropertyCardProps) {
 
         <div className="flex flex-col ">
           <p className="text-xs text-base text-muted-foreground">
-            {property.sqft} sqft · {property.cleaned_location}
+            {property.sqft && property.sqft > 0 ? `${property.sqft} sqft · ` : ''}{property.cleaned_location}
           </p>
          
         </div>
@@ -167,16 +163,18 @@ export function PropertyCard({ property, onClose }: PropertyCardProps) {
         </div>
 
         {/* Dimensions */}
-        <div>
-          <h3 className="text-xs font-medium text-muted-foreground mb-0">Dimensions</h3>
-          <div className="">
-            <p className="text-xs">
-              {!property.dimensions || property.dimensions === 'NA' 
-                ? <span className="text-muted-foreground">Not disclosed</span>
-                : property.dimensions}
-            </p>
+        {property.property_type !== 'F' && (
+          <div>
+            <h3 className="text-xs font-medium text-muted-foreground mb-0">Dimensions</h3>
+            <div className="">
+              <p className="text-xs">
+                {!property.dimensions || property.dimensions === 'NA' 
+                  ? <span className="text-muted-foreground">Not disclosed</span>
+                  : property.dimensions}
+              </p>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Additional Details */}
         <div className="space-y-3">
@@ -208,14 +206,16 @@ export function PropertyCard({ property, onClose }: PropertyCardProps) {
                 : property.direction}
             </p>
           </div>
-          <div>
-            <h3 className="text-xs font-medium text-muted-foreground mb-0">Road Width</h3>
-            <p className="text-xs">
-              {!property.road_width || property.road_width === 'NA' 
-                ? <span className="text-muted-foreground">Not disclosed</span>
-                : property.road_width}
-            </p>
-          </div>
+          {property.property_type !== 'F' && (
+            <div>
+              <h3 className="text-xs font-medium text-muted-foreground mb-0">Road Width</h3>
+              <p className="text-xs">
+                {!property.road_width || property.road_width === 'NA' 
+                  ? <span className="text-muted-foreground">Not disclosed</span>
+                  : property.road_width}
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Amenities */}

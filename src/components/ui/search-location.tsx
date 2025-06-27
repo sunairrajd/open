@@ -4,6 +4,21 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { Input } from "@/components/ui/input";
 import { MagnifyingGlassIcon } from "@radix-ui/react-icons";
 
+// Add UUID generation function
+function generateUUID() {
+  // Check if crypto.randomUUID is available
+  if (typeof window !== 'undefined' && window.crypto?.randomUUID) {
+    return window.crypto.randomUUID();
+  }
+  
+  // Fallback to manual UUID generation
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
 // We only need a subset of the prediction fields
 interface SearchResult {
   place_id: string;
@@ -22,7 +37,7 @@ export function SearchLocation({ onLocationSelect }: SearchLocationProps) {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [open, setOpen] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
-  const sessionToken = useRef<string>(crypto.randomUUID());
+  const sessionToken = useRef<string>(generateUUID());
   const isProgrammaticUpdate = useRef(false);
 
   // Custom function to update search that distinguishes between user input and programmatic updates
@@ -108,8 +123,8 @@ export function SearchLocation({ onLocationSelect }: SearchLocationProps) {
         console.log('Location found:', { lat, lng });
         onLocationSelect(lat, lng);
         updateSearch(result.structured_formatting.main_text, true);
-        // Create a new session token for the next search
-        sessionToken.current = crypto.randomUUID();
+        // Update to use new generateUUID function
+        sessionToken.current = generateUUID();
       }
     } catch (error) {
       console.error('Error getting place details:', error);
