@@ -67,6 +67,7 @@ export default function MapComponent({
   const isUpdatingRef = useRef(false);
   const lastFetchParamsRef = useRef<string>('');
   const fetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isMovingRef = useRef(false);
   const [isMapInitialized, setIsMapInitialized] = useState(false);
   const [currentView, setCurrentView] = useState<{
     center: [number, number];
@@ -186,6 +187,19 @@ export default function MapComponent({
     }
   }, [createFetchParams]);
 
+  // Define handleMoveStart
+  const handleMoveStart = useCallback(() => {
+    console.log('User started moving');
+    isMovingRef.current = true;
+    
+    // Cancel any pending fetch timeout since user is moving again
+    if (fetchTimeoutRef.current) {
+      clearTimeout(fetchTimeoutRef.current);
+      fetchTimeoutRef.current = null;
+      console.log('Cancelled fetch timeout - user started moving');
+    }
+  }, []);
+
   // Define handleMoveEnd
   const handleMoveEnd = useCallback(() => {
     if (!mapRef.current || isUpdatingRef.current) return;
@@ -215,18 +229,27 @@ export default function MapComponent({
         onBoundsChange(newBounds);
       }
 
+      // Mark that we're no longer moving
+      isMovingRef.current = false;
+
       // Cancel any existing timeout
       if (fetchTimeoutRef.current) {
         clearTimeout(fetchTimeoutRef.current);
         console.log('Cancelled previous fetch timeout');
       }
 
-      // Add 500ms delay before fetching properties to prevent excessive API calls
+      // Add 500ms delay before fetching properties to ensure user has stopped moving
       fetchTimeoutRef.current = setTimeout(() => {
-        // Reset to first page when bounds change
-        fetchProperties(newBounds, 1);
+        // Only fetch if we're still not moving after the delay
+        if (!isMovingRef.current) {
+          console.log('User has stopped moving, fetching properties');
+          // Reset to first page when bounds change
+          fetchProperties(newBounds, 1);
+        } else {
+          console.log('User is still moving, skipping fetch');
+        }
         fetchTimeoutRef.current = null;
-      }, 500);
+      }, 2);
     } catch (error) {
       console.error('Error in handleMoveEnd:', error);
     }
@@ -333,18 +356,24 @@ export default function MapComponent({
     let moveEndTimeout: NodeJS.Timeout;
     const map = mapRef.current;
 
+    const onMoveStart = () => {
+      handleMoveStart();
+    };
+
     const onMoveEnd = () => {
       clearTimeout(moveEndTimeout);
       moveEndTimeout = setTimeout(handleMoveEnd, 100);
     };
 
+    map.on('movestart', onMoveStart);
     map.on('moveend', onMoveEnd);
 
     return () => {
+      map.off('movestart', onMoveStart);
       map.off('moveend', onMoveEnd);
       clearTimeout(moveEndTimeout);
     };
-  }, [isMapInitialized, handleMoveEnd]);
+  }, [isMapInitialized, handleMoveStart, handleMoveEnd]);
 
   // Cleanup on unmount
   useEffect(() => {
