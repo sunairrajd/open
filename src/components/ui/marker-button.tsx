@@ -27,7 +27,7 @@ export function MarkerButton({
     }
   };
 
-  const isPriceZero = price === '0.00Cr' || price === null || price === undefined;
+  const isPriceZero = price === '0.00Cr' || price === '· · ·' || price === null || price === undefined;
   const isLand = propertyType === 'Plot/Land' || propertyType === 'Plot' || propertyType === 'L';
   const isIndependent = propertyType === 'Independent house' || propertyType === 'I';
   const isFlat = propertyType === 'Flat' || propertyType === 'F';
@@ -70,10 +70,12 @@ export function MarkerButton({
           [margin-top: -2px]
         `}>
           {isPriceZero ? (
+            <div className="flex items-center justify-center py-[2px] px-[2px] [-webkit-text-stroke:5px_#FFFFFF] [margin-top: -2px] [line-height:2] ">
             <span className="
               text-primary text-[12px] font-bold font-sans
-               px-[1px] rounded-[2px]
+               px-[1px] rounded-[2px] [paint-order:stroke_fill]
             ">· · ·</span>
+            </div>
           ) : (
             <div className="flex items-center justify-center px-[2px] [-webkit-text-stroke:5px_#FFFFFF] [margin-top: -2px] [line-height:1]">
               <span className="
@@ -116,7 +118,7 @@ export function MarkerButton({
       ${className}
     `}>
       {isPriceZero ? (
-        <span className="text-[#084DCB] text-[11px] font-bold font-sans">· · ·</span>
+        <span className="text-[#084DCB] text-[11px] font-bold font-sans [paint-order:stroke_fill]">· · ·</span>
       ) : (
         <>
           <span className="text-[#084DCB] text-[11px] font-normal font-sans">₹</span>

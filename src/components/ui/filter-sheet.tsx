@@ -29,10 +29,10 @@ export interface FilterState {
 
 const PROPERTY_CATEGORIES = [
   { value: 'all', label: 'All' },
-  { value: 'apartment', label: 'Apartment' },
-  { value: 'independent-house', label: 'Independent House' },
-  { value: 'villa', label: 'Villa' },
-  { value: 'plot-land', label: 'Plot/Land' },
+  { value: 'F', label: 'Flat' },
+  { value: 'I', label: 'Independent House' },
+  { value: 'L', label: 'Plot/Land' },
+  { value: 'C', label: 'Commercial' },
 ];
 
 const MAX_PRICE = 90000000; // 9 Crore

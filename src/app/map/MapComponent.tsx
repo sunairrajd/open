@@ -66,6 +66,7 @@ export default function MapComponent({
   const tileLayerRef = useRef<L.TileLayer | null>(null);
   const isUpdatingRef = useRef(false);
   const lastFetchParamsRef = useRef<string>('');
+  const fetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [isMapInitialized, setIsMapInitialized] = useState(false);
   const [currentView, setCurrentView] = useState<{
     center: [number, number];
@@ -113,12 +114,8 @@ export default function MapComponent({
 
     if (activeFilters) {
       if (activeFilters.propertyCategories.length > 0) {
-        let propertyType = activeFilters.propertyCategories[0];
-        if (propertyType === 'independent-house') {
-          propertyType = 'Independent house';
-        } else if (propertyType === 'plot-land') {
-          propertyType = 'Plot/Land';
-        }
+        // Use the first selected property type directly (no mapping needed)
+        const propertyType = activeFilters.propertyCategories[0];
         params.set('propertyType', propertyType);
       }
 
@@ -218,8 +215,18 @@ export default function MapComponent({
         onBoundsChange(newBounds);
       }
 
-      // Reset to first page when bounds change
-      fetchProperties(newBounds, 1);
+      // Cancel any existing timeout
+      if (fetchTimeoutRef.current) {
+        clearTimeout(fetchTimeoutRef.current);
+        console.log('Cancelled previous fetch timeout');
+      }
+
+      // Add 500ms delay before fetching properties to prevent excessive API calls
+      fetchTimeoutRef.current = setTimeout(() => {
+        // Reset to first page when bounds change
+        fetchProperties(newBounds, 1);
+        fetchTimeoutRef.current = null;
+      }, 500);
     } catch (error) {
       console.error('Error in handleMoveEnd:', error);
     }
@@ -279,7 +286,7 @@ export default function MapComponent({
         updateWhenIdle: true,
         updateWhenZooming: false,
         keepBuffer: 2,
-        maxNativeZoom: 18,
+        maxNativeZoom: 20,
         tileSize: 256
       });
 
@@ -350,6 +357,10 @@ export default function MapComponent({
         tileLayerRef.current.remove();
         tileLayerRef.current = null;
       }
+      if (fetchTimeoutRef.current) {
+        clearTimeout(fetchTimeoutRef.current);
+        fetchTimeoutRef.current = null;
+      }
       markersRef.current = [];
       setIsMapInitialized(false);
     };
@@ -404,8 +415,8 @@ export default function MapComponent({
           
           // Calculate spread radius based on zoom level
           const map = mapRef.current;
-          const zoom = map?.getZoom() || 15;
-          const baseSpread = 0.002 * Math.pow(2, 15 - zoom);
+          const zoom = map?.getZoom() || 18;
+          const baseSpread = zoom >= 18 ? 0.002 * Math.pow(2, 15 - zoom) : 0;
 
           propsAtLocation.forEach((property, index) => {
             // Create a circular spread pattern
