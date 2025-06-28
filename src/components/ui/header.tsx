@@ -4,6 +4,7 @@ import { SearchLocation } from "./search-location";
 import { FilterSheet } from "./filter-sheet";
 import type { FilterState } from "./filter-sheet";
 import Image from "next/image";
+import Link from "next/link";
 import { Button } from "./button";
 import { Hand } from "lucide-react";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
@@ -57,10 +58,10 @@ export function Header({ onLocationSelect, onFiltersChange }: HeaderProps) {
         <div className="container-fluid mx-auto px-4 h-16 flex items-center justify-between gap-2">
           {/* Logo/Title */}
           <div className="flex items-center ">
-            <a href="/"  rel="noopener noreferrer" className="flex items-center">
+            <Link href="/" className="flex items-center">
               <Image className="block md:hidden" src="/moblogo.svg" alt="Open Property" height={32} width={32} />
               <Image className="hidden md:block" src="/open.svg" alt="Open Property" height={26} width={98} />
-            </a>
+            </Link>
           </div>
 
           {/* Search Bar and Filters */}

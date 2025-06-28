@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useEffect, useState } from 'react';
+import Image from 'next/image';
 
 interface CSSCircularGalleryProps {
   items?: { image: string; text: string }[];
@@ -14,10 +15,7 @@ interface CSSCircularGalleryProps {
 
 export default function CSSCircularGallery({
   items = [],
-  bend = 3,
-  textColor = "#000000",
   borderRadius = 0.05,
-  font = "bold 16px DM Sans",
   imageWidth = 300,
   imageHeight = 533,
 }: CSSCircularGalleryProps) {
@@ -237,9 +235,12 @@ export default function CSSCircularGallery({
                   opacity: opacity.toFixed(3),
                 }}
               >
-                <img
+                <Image
                   src={item.image}
                   alt={item.text}
+                  width={Math.round(imageWidth * 0.6)}
+                  height={Math.round(imageHeight * 0.6)}
+                  className="w-full h-full object-cover"
                   draggable={false}
                 />
               </div>

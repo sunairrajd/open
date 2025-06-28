@@ -248,7 +248,7 @@ export default function Home() {
               <span className="text-4xl mb-4">📱</span>
               <CardTitle className="font-semibold">Contact the agent Directly</CardTitle>
               <CardDescription className="flex-1">
-                We don't get in the way. Just click and connect.
+                We don&apos;t get in the way. Just click and connect.
               </CardDescription>
             </CardHeader>
           </Card>
