@@ -97,7 +97,6 @@ export function PropertyList({
   const [isDragging, setIsDragging] = useState(false);
   const [startY, setStartY] = useState(0);
   const [isDesktopExpanded, setIsDesktopExpanded] = useState(true);
-  const headerRef = useRef<HTMLDivElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   const handlePropertyClick = (property: Property) => {
