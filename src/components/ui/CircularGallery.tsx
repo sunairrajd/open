@@ -327,9 +327,9 @@
 //         ];
 //       }
 //     }
-//     this.scale = this.screen.height / 1500;
+//     this.scale = this.screen.height / 1200;
 //     this.plane.scale.y =
-//       (this.viewport.height * (900 * this.scale)) / this.screen.height;
+//       (this.viewport.height * (700 * this.scale)) / this.screen.height;
 //     this.plane.scale.x =
 //       (this.viewport.width * (700 * this.scale)) / this.screen.width;
 //     this.plane.program.uniforms.uPlaneSizes.value = [
@@ -417,6 +417,17 @@
 //     this.onResize();
 //     this.createGeometry();
 //     this.createMedias(items, bend, textColor, borderRadius, font);
+
+//     // Set initial scroll position to center the gallery
+//     requestAnimationFrame(() => {
+//       if (this.medias && this.medias[0]) {
+//         const totalWidth = this.medias[0].width * this.medias.length;
+//         this.scroll.target = totalWidth / 4; // Set to 1/4 since we duplicate the items
+//         this.scroll.current = this.scroll.target;
+//         this.scroll.last = this.scroll.target;
+//       }
+//     });
+
 //     this.update();
 //     this.addEventListeners();
 //   }
@@ -443,7 +454,7 @@
 //   createCamera() {
 //     this.camera = new Camera(this.gl);
 //     this.camera.fov = 45;
-//     this.camera.position.z = 20;
+//     this.camera.position.z = 15;
 //   }
 
 //   createScene() {

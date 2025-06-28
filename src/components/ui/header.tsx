@@ -57,9 +57,9 @@ export function Header({ onLocationSelect, onFiltersChange }: HeaderProps) {
         <div className="container-fluid mx-auto px-4 h-16 flex items-center justify-between gap-2">
           {/* Logo/Title */}
           <div className="flex items-center ">
-            <a href="https://openproperty.com" target="_blank" rel="noopener noreferrer" className="flex items-center">
-              <Image className="block md:hidden" src="/moblogo.png" alt="Open Property" height={32} width={32} />
-              <Image className="hidden md:block" src="/logo.png" alt="Open Property" height={26} width={98} />
+            <a href="/"  rel="noopener noreferrer" className="flex items-center">
+              <Image className="block md:hidden" src="/moblogo.svg" alt="Open Property" height={32} width={32} />
+              <Image className="hidden md:block" src="/open.svg" alt="Open Property" height={26} width={98} />
             </a>
           </div>
 

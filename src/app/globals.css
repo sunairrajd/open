@@ -56,7 +56,7 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground overflow-y-auto overflow-x-hidden;
   }
 }
 
@@ -213,4 +213,22 @@
 
 [role="dialog"] {
   z-index: 9999 !important;
+}
+
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-33.33%);
+  }
+}
+
+.animate-scroll {
+  animation: scroll 30s linear infinite;
+}
+
+/* Optional: Pause animation on hover */
+.animate-scroll:hover {
+  animation-play-state: paused;
 }
