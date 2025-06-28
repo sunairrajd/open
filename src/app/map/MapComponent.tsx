@@ -152,14 +152,9 @@ export default function MapComponent({
       const apiUrl = `/api/v2/properties?${paramsString}`;
       console.log('Making API request to:', apiUrl);
       
-      const apiKey = process.env.NEXT_PUBLIC_CLIENT_API_KEY;
-      if (!apiKey) {
-        throw new Error('API key not configured');
-      }
-      
       const response = await fetch(apiUrl, {
         headers: {
-          'x-api-key': apiKey
+          'x-api-key': process.env.NEXT_PUBLIC_CLIENT_API_KEY || ''
         }
       });
       
@@ -553,7 +548,7 @@ export default function MapComponent({
         }
       `}</style>
       <div className="relative h-full w-full rounded-lg">
-        <div id="map" className="h-full w-full  rounded-lg border border-gray-200 overflow-hidden" style={{borderRadius: '16px'}}></div>
+        <div id="map" className="h-full w-full  rounded-lg lg:border-1 border-0 border-gray-200 overflow-hidden" style={{borderRadius: '16px'}}></div>
 
         {/* Property List */}
         <PropertyList 

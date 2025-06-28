@@ -60,7 +60,7 @@ export async function GET(request: Request) {
     const clientIP = request.headers.get('x-forwarded-for') || 
                     request.headers.get('x-real-ip') || 
                     'unknown';
-    const rateLimitResult = rateLimit(clientIP, 100, 3 * 60 * 1000); // 100 requests per 15 minutes
+    const rateLimitResult = rateLimit(clientIP, 1000, 3 * 60 * 1000); // 100 requests per 15 minutes
     
     if (!rateLimitResult.success) {
       console.warn(`Rate limit exceeded for IP: ${clientIP}`);

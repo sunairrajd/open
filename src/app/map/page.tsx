@@ -40,7 +40,7 @@ export default function MapPage() {
         onFiltersChange={handleFiltersChange}
       />
       <main className="flex-1 relative w-full overflow-hidden rounded-lg">
-        <div className="absolute inset-0 overflow-hidden rounded-2xl mx-4 mb-4 ">
+        <div className="absolute inset-0 overflow-hidden rounded-2xl lg:mx-4 mx-0 mb-4 ">
           <MapComponent 
             onMapReady={handleMapReady}
             activeFilters={activeFilters}

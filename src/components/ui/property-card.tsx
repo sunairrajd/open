@@ -67,10 +67,12 @@ export function PropertyCard({ property, onClose }: PropertyCardProps) {
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8"
+          className="h-10 w-10 cursor-pointer pointer-cursor"
           onClick={onClose}
         >
-          <X className="h-4 w-4" />
+          <X className="h-8 w-8"
+            strokeWidth={2.5}
+          />
         </Button>
       </div>
 
@@ -90,7 +92,7 @@ export function PropertyCard({ property, onClose }: PropertyCardProps) {
         </div>
       </div>
 
-      <CardHeader className="relative px-4 py-0 gap-0 mt-4">
+      <CardHeader className="relative px-4 py-0 gap-0 mt-0">
         <CardTitle className="text-base mb-1 lg:text-sm md:text-lg pt-2">
           {Number(property.price_overall) === 0 ? (
             <>
@@ -267,7 +269,7 @@ export function PropertyCard({ property, onClose }: PropertyCardProps) {
           {!showContact ? (
             <Button 
               variant="default" 
-              className="w-full text-white text-xs transition-colors"
+              className="w-full text-white text-sm lg:text-xs py-6 lg:py-3 transition-colors"
               style={{ 
                 backgroundColor: 'var(--pinkbrand)'
               }}

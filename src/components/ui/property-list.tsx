@@ -3,7 +3,7 @@
 import { Property } from "@/app/map/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, ChevronUp  } from "lucide-react";
+import { ChevronDown, ChevronUp, Play, Video } from "lucide-react";
 import Image from "next/image";
 import { formatDistanceToNow } from 'date-fns';
 import { useState, useRef } from 'react';
@@ -136,8 +136,8 @@ export function PropertyList({
 
   return (
     <Card 
-      className={`lg:fixed lg:right-4 lg:top-20 lg:left-8 rounded-t-2xl lg:rounded-t-2xl rounded-b-none lg:bottom-8 lg:border-0 lg:rounded-b-2xl lg:w-[480px] pb-0 
-                sticky bottom-0 border-t-1 border-x-0 left-0 right-0 
+      className={`lg:fixed lg:right-4 lg:top-20 lg:left-8 rounded-t-2xl  pt-2 lg:pt-6 lg:rounded-t-2xl rounded-b-none lg:bottom-8 lg:border-0 lg:rounded-b-2xl lg:w-[480px] pb-0 
+                sticky bottom-0 border-t-1 border-x-0 left-0 right-0  overflow-hidden
                 ${isExpanded ? 'h-[calc(100vh-4rem)] pb-0 lg:pb-6' : 'h-[94px]'} 
                 ${isDesktopExpanded ? 'lg:w-[480px] lg:h-[calc(100vh-7rem)] lg:pb-6 lg:h-auto' : 'lg:w-[300px] lg:h-[90px] pb-6'}
                 bg-white lg:bg-white/80 backdrop-blur-sm shadow-lg z-[9998]
@@ -150,63 +150,77 @@ export function PropertyList({
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        <div ref={headerRef} className="flex justify-between items-center mb-4 px-0 lg:px-4">
-          <div className="flex items-center justify-between w-full">
-            <h2 className="lg:text-sm md:text-lg font-semibold transition-transform duration-500 ease-in-out">
-              {pagination?.total ? `${pagination.total} properties found` : `${properties.length} properties found`}
-            </h2>
-            <div className={`${isDesktopExpanded ? 'flex items-center gap-2' : 'flex items-center gap-2'}`}>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="hidden lg:flex items-center justify-center p-0 hover:bg-transparent transition-transform duration-500 cursor-pointer"
-                onClick={() => {
-                  setIsDesktopExpanded(!isDesktopExpanded);
-                  if (isDesktopExpanded) {
-                    onPropertyClick(null);
-                  }
-                }}
-              >
-                {isDesktopExpanded ? (
-                  <ArrowLeftFromLine
-                    className="text-primary !w-5 !h-5 transition-transform duration-500" 
-                    strokeWidth={2} 
-                  />
-                ) : (
-                  <ArrowRightToLine
-                    className="text-primary !w-5 !h-5 transition-transform duration-500" 
-                    strokeWidth={2} 
-                  />
-                )}
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="lg:hidden p-0 hover:bg-transparent transition-transform duration-500 cursor-pointer"
-                onClick={() => setIsExpanded(!isExpanded)}
-              >
-                {isExpanded ? (
-                  <ChevronDown 
-                    className="text-primary !w-8 !h-8 transition-transform duration-500" 
-                    style={{ width: '4px', height: '4px' }}
-                    strokeWidth={2} 
-                  />
-                ) : (
-                  <ChevronUp
-                    className="text-primary !w-8 !h-8 transition-transform duration-500" 
-                    style={{ width: '4px', height: '4px' }}
-                    strokeWidth={2} 
-                  />
-                )}
-              </Button>
-            </div>
+        {/* Bottom Sheet Handle */}
+        <div className="flex justify-center w-full  lg:hidden">
+          <div className="w-12 h-1 bg-gray-300 rounded-full" />
+        </div>
+
+        {/* Header Content */}
+        <div 
+          className="flex items-center justify-between  cursor-pointer lg:cursor-default p-2 mb-2 lg:mx-3 active:bg-accent/5"
+          onClick={() => {
+            if (window.innerWidth < 1024) {
+              setIsExpanded(!isExpanded);
+            }
+          }}
+        >
+          <h3 className="lg:text-sm md:text-lg font-medium transition-transform duration-500 ease-in-out flex items-center gap-2">
+            <Video className="w-5 h-5 text-primary" strokeWidth={2} />
+            {pagination?.total ? `${pagination.total} properties found` : `${properties.length} properties found`}
+          </h3>
+          <div className={`${isDesktopExpanded ? 'flex items-center gap-2' : 'flex items-center gap-2'}`}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="hidden lg:flex items-center justify-center p-0 hover:bg-transparent transition-transform duration-500 cursor-pointer"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsDesktopExpanded(!isDesktopExpanded);
+                if (isDesktopExpanded) {
+                  onPropertyClick(null);
+                }
+              }}
+            >
+              {isDesktopExpanded ? (
+                <ArrowLeftFromLine
+                  className="text-primary !w-5 !h-5 transition-transform duration-500" 
+                  strokeWidth={2} 
+                />
+              ) : (
+                <ArrowRightToLine
+                  className="text-primary !w-5 !h-5 transition-transform duration-500" 
+                  strokeWidth={2} 
+                />
+              )}
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="lg:hidden p-0 hover:bg-transparent px-0 transition-transform duration-500"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsExpanded(!isExpanded);
+              }}
+            >
+              {isExpanded ? (
+                <ChevronDown 
+                  className="text-primary !w-6 !h-6 transition-transform duration-500" 
+                  strokeWidth={2} 
+                />
+              ) : (
+                <ChevronUp
+                  className="text-primary !w-6 !h-6 transition-transform duration-500" 
+                  strokeWidth={2} 
+                />
+              )}
+            </Button>
           </div>
         </div>
         <div 
           ref={scrollAreaRef} 
           className={`
             ${isExpanded ? 'max-lg:h-[calc(100vh-10rem)]' : 'max-lg:h-[calc(40vh-6rem)]'}
-            ${isDesktopExpanded ? 'lg:h-[calc(100vh-10rem)]' : 'lg:h-[0px]'}
+            ${isDesktopExpanded ? 'lg:h-[calc(100vh-13rem)]' : 'lg:h-[0px]'}
             overflow-y-auto overflow-x-hidden
             flex flex-col
             -webkit-overflow-scrolling: touch
@@ -259,7 +273,7 @@ export function PropertyList({
                   property.video_type === 'F' 
                     ? 'lg:aspect-[9/16] aspect-video' 
                     : 'aspect-[9/16]'
-                } rounded-lg overflow-hidden`}>
+                } rounded-lg overflow-hidden group`}>
                   <div className="absolute top-2 right-2 z-10">
                     <span className={`px-1 py-1 text-[10px] rounded-md font-medium backdrop-blur-sm ${
                       formatTimeAgo(property.upload_date).includes('New')
@@ -270,26 +284,34 @@ export function PropertyList({
                     </span>
                   </div>
                   {property.youtube_id ? (
-                    <Image
-                      src={`https://img.youtube.com/vi/${property.youtube_id}/hqdefault.jpg`}
-                      alt={`${property.property_type} at ${property.cleaned_location}`}
-                      fill
-                      className="object-cover bg-gray-100 scale-[1.02]"
-                      sizes="(max-width: 768px) 100vw, 184px"
-                      onError={(e) => {
-                        // If maxresdefault fails, try hqdefault
-                        const img = e.target as HTMLImageElement;
-                        if (img.src.includes('maxresdefault')) {
-                          img.src = `https://img.youtube.com/vi/${property.youtube_id}/hqdefault.jpg`;
-                        } else if (img.src.includes('hqdefault')) {
-                          // If hqdefault fails, try mqdefault
-                          img.src = `https://img.youtube.com/vi/${property.youtube_id}/mqdefault.jpg`;
-                        } else if (img.src.includes('mqdefault')) {
-                          // If mqdefault fails, try default
-                          img.src = `https://img.youtube.com/vi/${property.youtube_id}/default.jpg`;
-                        }
-                      }}
-                    />
+                    <>
+                      <Image
+                        src={`https://img.youtube.com/vi/${property.youtube_id}/hqdefault.jpg`}
+                        alt={`${property.property_type} at ${property.cleaned_location}`}
+                        fill
+                        className="object-cover bg-gray-100 scale-[1.02] group-hover:scale-[1.05] transition-transform duration-300"
+                        sizes="(max-width: 768px) 100vw, 184px"
+                        onError={(e) => {
+                          // If maxresdefault fails, try hqdefault
+                          const img = e.target as HTMLImageElement;
+                          if (img.src.includes('maxresdefault')) {
+                            img.src = `https://img.youtube.com/vi/${property.youtube_id}/hqdefault.jpg`;
+                          } else if (img.src.includes('hqdefault')) {
+                            // If hqdefault fails, try mqdefault
+                            img.src = `https://img.youtube.com/vi/${property.youtube_id}/mqdefault.jpg`;
+                          } else if (img.src.includes('mqdefault')) {
+                            // If mqdefault fails, try default
+                            img.src = `https://img.youtube.com/vi/${property.youtube_id}/default.jpg`;
+                          }
+                        }}
+                      />
+                      {/* Play button overlay */}
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="w-12 h-12 rounded-full bg-black/50 flex items-center justify-center backdrop-blur-sm group-hover:bg-black/70 transition-colors duration-300">
+                          <Play className="w-6 h-6 text-white fill-white" strokeWidth={1.5} />
+                        </div>
+                      </div>
+                    </>
                   ) : (
                     <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">
                       <p className="text-sm text-muted-foreground">No image available</p>
@@ -320,7 +342,8 @@ export function PropertyList({
               </div>
             ))}
           </div>
-
+          
+         
           {/* Load More Button */}
           {pagination?.nextPage && properties.length > 0 && (
             <div className="w-full bg-white/80 backdrop-blur-sm pt-4 lg:pt-2 pb-6 px-0 lg:px-4 mt-0 mb-8 flex-shrink-0">
@@ -331,14 +354,14 @@ export function PropertyList({
                   e.stopPropagation();
                   onLoadMore?.();
                 }}
-                className="w-full bg-white hover:bg-accent/10 flex items-center justify-center gap-2"
+                className="w-full cursor-pointer pointer-cursor bg-white hover:bg-accent/10 flex items-center justify-center gap-2 text-sm lg:text-xs py-6 lg:py-3"
               >
                 Load more properties
-                {pagination.nextPage < pagination.totalPages && 
-                  ` (${pagination.total - properties.length} remaining)`}
+                {pagination.nextPage < pagination.totalPages}
               </Button>
             </div>
           )}
+          <div className="h-[200px] w-full flex-shrink-0" />
         </div>
       </CardContent>
     </Card>
