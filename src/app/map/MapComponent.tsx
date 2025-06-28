@@ -115,9 +115,10 @@ export default function MapComponent({
 
     if (activeFilters) {
       if (activeFilters.propertyCategories.length > 0) {
-        // Use the first selected property type directly (no mapping needed)
-        const propertyType = activeFilters.propertyCategories[0];
-        params.set('propertyType', propertyType);
+        // Add multiple propertyType parameters for each selected category
+        activeFilters.propertyCategories.forEach(propertyType => {
+          params.append('propertyType', propertyType);
+        });
       }
 
       if (activeFilters.priceRange && 

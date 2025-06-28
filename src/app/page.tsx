@@ -257,10 +257,10 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="container mx-auto px-4 py-8 text-center border-t">
-        <div className="flex justify-between items-center text-sm text-muted-foreground">
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 text-sm text-muted-foreground">
           <span>trustopenproperty@gmail.com</span>
           <span>© 2025 Open Property. All rights reserved.</span>
-          <div className="space-x-4">
+          <div className="flex justify-center gap-4">
             <Link href="/privacy" className="hover:text-foreground">Privacy</Link>
             <Link href="/terms" className="hover:text-foreground">Terms of service</Link>
           </div>
